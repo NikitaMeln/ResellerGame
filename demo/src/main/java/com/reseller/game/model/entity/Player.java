@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.Builder.Default;
 
 @Getter
 @Setter
@@ -38,4 +39,8 @@ public class Player {
 
     @ManyToMany
     private List<Car> cars;
+
+    private Integer totalProfit;
+
+    private Integer soldCars;
 }

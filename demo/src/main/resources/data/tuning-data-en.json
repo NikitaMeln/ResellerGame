@@ -1,0 +1,473 @@
+[
+  {
+    "id": 1,
+    "name": "Fast Law",
+    "price": 184.32,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 2,
+    "name": "After Old",
+    "price": 157.44,
+    "type": "NEGATIVE",
+    "properties": {
+      "purchaseCounterModifier": 3,
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 3,
+    "name": "Size Determine",
+    "price": 140.73,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": 114,
+      "purchaseCounterModifier": -3
+    }
+  },
+  {
+    "id": 4,
+    "name": "Claim Star",
+    "price": 172.98,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": 226,
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 5,
+    "name": "Provide See",
+    "price": 108.03,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -237
+    }
+  },
+  {
+    "id": 6,
+    "name": "Television Behavior",
+    "price": 287.36,
+    "type": "NEGATIVE",
+    "properties": {
+      "banOneRound": true
+    }
+  },
+  {
+    "id": 7,
+    "name": "Television Professional",
+    "price": 276.55,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": -2,
+      "priceEffect": -187
+    }
+  },
+  {
+    "id": 8,
+    "name": "Public Along",
+    "price": 292.91,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": -195
+    }
+  },
+  {
+    "id": 9,
+    "name": "Wear Democratic",
+    "price": 207.5,
+    "type": "NEGATIVE",
+    "properties": {
+      "purchaseCounterModifier": 3,
+      "banOneRound": true
+    }
+  },
+  {
+    "id": 10,
+    "name": "Yard Away",
+    "price": 294.84,
+    "type": "NEGATIVE",
+    "properties": {
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 11,
+    "name": "Front Player",
+    "price": 236.45,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 12,
+    "name": "Music Organization",
+    "price": 205.95,
+    "type": "POSITIVE",
+    "properties": {
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 13,
+    "name": "Serve Miss",
+    "price": 250.41,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 14,
+    "name": "Type Listen",
+    "price": 199.09,
+    "type": "NEGATIVE",
+    "properties": {
+      "banOneRound": true
+    }
+  },
+  {
+    "id": 15,
+    "name": "Several Find",
+    "price": 102.5,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -156
+    }
+  },
+  {
+    "id": 16,
+    "name": "Middle Thus",
+    "price": 209.53,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": -159,
+      "purchaseCounterModifier": 2
+    }
+  },
+  {
+    "id": 17,
+    "name": "Shoulder Color",
+    "price": 201.46,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": -2,
+      "priceEffect": 130
+    }
+  },
+  {
+    "id": 18,
+    "name": "Including Sure",
+    "price": 267.11,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true,
+      "purchaseCounterModifier": 3
+    }
+  },
+  {
+    "id": 19,
+    "name": "Hundred Reflect",
+    "price": 239.02,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 20,
+    "name": "Rest Environmental",
+    "price": 160.18,
+    "type": "NEGATIVE",
+    "properties": {
+      "purchaseCounterModifier": 3
+    }
+  },
+  {
+    "id": 21,
+    "name": "To Them",
+    "price": 190.5,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": -220
+    }
+  },
+  {
+    "id": 22,
+    "name": "New Company",
+    "price": 129.35,
+    "type": "NEGATIVE",
+    "properties": {
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 23,
+    "name": "Break Onto",
+    "price": 211.92,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": 129
+    }
+  },
+  {
+    "id": 24,
+    "name": "Movie Group",
+    "price": 261.72,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true,
+      "banOneRound": true
+    }
+  },
+  {
+    "id": 25,
+    "name": "Prepare Water",
+    "price": 165.96,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": 202
+    }
+  },
+  {
+    "id": 26,
+    "name": "Third Attack",
+    "price": 206.09,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": 2
+    }
+  },
+  {
+    "id": 27,
+    "name": "Light Skill",
+    "price": 221.95,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 28,
+    "name": "Hour Much",
+    "price": 263.98,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": -57
+    }
+  },
+  {
+    "id": 29,
+    "name": "Assume Direction",
+    "price": 213.88,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -30,
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 30,
+    "name": "Life However",
+    "price": 291.37,
+    "type": "POSITIVE",
+    "properties": {
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 31,
+    "name": "Fine Could",
+    "price": 292.3,
+    "type": "POSITIVE",
+    "properties": {
+      "ignoreClientRequirements": true,
+      "purchaseCounterModifier": 2
+    }
+  },
+  {
+    "id": 32,
+    "name": "His Drop",
+    "price": 205.96,
+    "type": "POSITIVE",
+    "properties": {
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 33,
+    "name": "Local Various",
+    "price": 255.4,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": -3,
+      "priceEffect": 26
+    }
+  },
+  {
+    "id": 34,
+    "name": "There But",
+    "price": 133.71,
+    "type": "POSITIVE",
+    "properties": {
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 35,
+    "name": "Heavy Sure",
+    "price": 271.43,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": 3
+    }
+  },
+  {
+    "id": 36,
+    "name": "Reflect Seem",
+    "price": 272.87,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": 223
+    }
+  },
+  {
+    "id": 37,
+    "name": "Civil Near",
+    "price": 122.22,
+    "type": "NEGATIVE",
+    "properties": {
+      "banOneRound": true
+    }
+  },
+  {
+    "id": 38,
+    "name": "After Resource",
+    "price": 137.94,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 39,
+    "name": "To Bag",
+    "price": 272.84,
+    "type": "POSITIVE",
+    "properties": {
+      "banOneRound": true,
+      "purchaseCounterModifier": -3
+    }
+  },
+  {
+    "id": 40,
+    "name": "Receive Produce",
+    "price": 148.63,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": -3,
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 41,
+    "name": "Home Sing",
+    "price": 280.95,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -168,
+      "banOneRound": true
+    }
+  },
+  {
+    "id": 42,
+    "name": "Bag Check",
+    "price": 217.64,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": 2,
+      "priceEffect": -228
+    }
+  },
+  {
+    "id": 43,
+    "name": "Even Say",
+    "price": 273.17,
+    "type": "NEGATIVE",
+    "properties": {
+      "purchaseCounterModifier": -2,
+      "priceEffect": -288
+    }
+  },
+  {
+    "id": 44,
+    "name": "Leave Product",
+    "price": 275.77,
+    "type": "NEGATIVE",
+    "properties": {
+      "deactivateAllTunings": true,
+      "ignoreClientRequirements": true
+    }
+  },
+  {
+    "id": 45,
+    "name": "Eye Those",
+    "price": 237.57,
+    "type": "NEGATIVE",
+    "properties": {
+      "ignoreClientRequirements": true,
+      "priceEffect": 73
+    }
+  },
+  {
+    "id": 46,
+    "name": "Rock Home",
+    "price": 143.87,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": 3,
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 47,
+    "name": "Certainly Law",
+    "price": 220.95,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -177
+    }
+  },
+  {
+    "id": 48,
+    "name": "Develop Instead",
+    "price": 291.22,
+    "type": "POSITIVE",
+    "properties": {
+      "ignoreClientRequirements": true,
+      "deactivateAllTunings": true
+    }
+  },
+  {
+    "id": 49,
+    "name": "Together Real",
+    "price": 100.43,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": -3
+    }
+  },
+  {
+    "id": 50,
+    "name": "Item Value",
+    "price": 269.53,
+    "type": "POSITIVE",
+    "properties": {
+      "purchaseCounterModifier": 3
+    }
+  }
+]

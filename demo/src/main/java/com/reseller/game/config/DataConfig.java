@@ -16,7 +16,7 @@ public class DataConfig {
     @Autowired
     private DataSourceProperties dataSourceProperties;
 
-    @Bean(name = "realDataSource")
+    @Bean(name = "dataSource")
     @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource realDataSource() {
         return dataSourceProperties
@@ -27,7 +27,6 @@ public class DataConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
-        // Wrap the real data source with log4jdbc's DataSourceSpy
         return new DataSourceSpy(realDataSource());
     }
 }

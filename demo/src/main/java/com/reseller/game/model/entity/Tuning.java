@@ -3,7 +3,6 @@ package com.reseller.game.model.entity;
 import java.math.BigDecimal;
 import java.util.Map;
 
-import org.h2.util.json.JSONObject;
 import com.reseller.game.model.entity.types.TuningType;
 import com.reseller.game.util.JsonMapConverter;
 
@@ -29,12 +28,19 @@ public class Tuning {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String name; // Name of the tuning
     
-    private BigDecimal price;
+    private BigDecimal price; // Price of the tuning 100-300
     
-    private TuningType type;
+    private TuningType type; // Negative or Positive tuning
     
+    /*
+    * Tuning can affect the car price by ±100–300.
+    * It can modify the random purchase counter by ±2 or ±3.
+    * It can temporarily ban a car from one round.
+    * It can deactivate all tunings on a specific car.
+    * It can influence the client, allowing you to bypass certain selling requirements.
+    */
     @Convert(converter = JsonMapConverter.class)
     private Map<String, Object> properties;
 }

@@ -22,6 +22,7 @@ public class JsonMapConverter implements AttributeConverter<Map<String, Object>,
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Map<String, Object> convertToEntityAttribute(String dbData) {
         try {

@@ -1,6 +1,9 @@
 package com.reseller.game.model.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Queue;
+import com.reseller.game.model.entity.types.RoomState;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,7 +23,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 @Entity
-public class Room {
+public class GameRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,6 +31,8 @@ public class Room {
     @ManyToMany
     private List<Player> players;
     
+    private Queue<Player> playerQueue;
+
     @ManyToMany
     private List<Client> clients;
     
@@ -36,4 +41,8 @@ public class Room {
     
     @ManyToMany
     private List<Tuning> tunings;
+
+    private LocalDateTime startTime;
+
+    private RoomState state;
 }
