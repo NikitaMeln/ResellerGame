@@ -3,6 +3,8 @@ package com.reseller.game.model.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Queue;
+
+import com.reseller.game.model.entity.types.Phase;
 import com.reseller.game.model.entity.types.RoomState;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -45,4 +47,6 @@ public class GameRoom {
     private LocalDateTime startTime;
 
     private RoomState state;
+
+    private Phase phase;
 }

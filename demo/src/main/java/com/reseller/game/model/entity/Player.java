@@ -1,43 +1,38 @@
 package com.reseller.game.model.entity;
 
-import java.math.BigDecimal;
 import java.util.List;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.Builder.Default;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "cars")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 public class Player {
 
     @Id
     private String telegramId;
 
-    @NonNull
+    @Column(nullable = false)
     private String username;
 
-    @NonNull
+    @Column(nullable = false)
     private String language;
     
     private Integer garageSize;
 
-    private BigDecimal balance;
+    private Integer balance;
 
     @ManyToMany
+    @JoinTable(
+            name = "player_cars",
+            joinColumns = @JoinColumn(name = "player_id"),
+            inverseJoinColumns = @JoinColumn(name = "car_id")
+    )
     private List<Car> cars;
 
     private Integer totalProfit;

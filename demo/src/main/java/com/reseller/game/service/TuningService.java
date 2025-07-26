@@ -1,40 +1,16 @@
 package com.reseller.game.service;
 
-import java.util.List;
-import java.util.Random;
-
-import org.springframework.stereotype.Service;
 import com.reseller.game.model.entity.Tuning;
 import com.reseller.game.model.entity.types.TuningType;
-import com.reseller.game.repository.TuningRepository;
 
-@Service
-public class TuningService {
+import java.util.List;
+import java.util.Optional;
 
-    private final Random random = new Random();
+public interface TuningService {
 
-    private final TuningRepository tuningRepository;
+    void initTuning(List<Tuning> tunings);
 
-    public TuningService(TuningRepository tuningRepository) {
-        this.tuningRepository = tuningRepository;
-    }
+    List<Tuning> getAllTunings();
 
-    public void initTuning(List<Tuning> tunings) {
-        try {
-            tuningRepository.saveAllAndFlush(tunings);
-        } catch (Exception e) {
-            System.err.println("Error initializing tunings table: " + e.getMessage());
-        }
-    }
-
-    public List<Tuning> getAllTunnings() {
-        return tuningRepository.findAll();
-    }
-
-    private Tuning getRandomTuning(List<Tuning> tunings, TuningType type) {
-        List<Tuning> filtered = tunings.stream()
-            .filter(t -> t.getType() == type)
-            .toList();
-        return filtered.get(random.nextInt(filtered.size()));
-    }
+    Optional<Tuning> getRandomTuning(TuningType type);
 }

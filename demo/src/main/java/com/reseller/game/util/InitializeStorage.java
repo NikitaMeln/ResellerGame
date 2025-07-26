@@ -9,28 +9,28 @@ import org.springframework.stereotype.Component;
 import com.reseller.game.model.entity.Car;
 import com.reseller.game.model.entity.Client;
 import com.reseller.game.model.entity.Tuning;
-import com.reseller.game.service.CarService;
-import com.reseller.game.service.ClientService;
-import com.reseller.game.service.TuningService;
+import com.reseller.game.service.impl.CarServiceImpl;
+import com.reseller.game.service.impl.ClientServiceImpl;
+import com.reseller.game.service.impl.TuningServiceImpl;
 
 import jakarta.annotation.PostConstruct;
 
 @Component
 public class InitializeStorage {
 
-    private final TuningService tuningService;
-    private final CarService carService;
-    private final ClientService clientService;
+    private final TuningServiceImpl tuningServiceImpl;
+    private final CarServiceImpl carServiceImpl;
+    private final ClientServiceImpl clientServiceImpl;
     private final JsonToDataParser jsonToDataParser;
 
     public InitializeStorage(
-        TuningService tuningService,
-        CarService carService,
-        ClientService clientService,
+        TuningServiceImpl tuningServiceImpl,
+        CarServiceImpl carServiceImpl,
+        ClientServiceImpl clientServiceImpl,
         JsonToDataParser jsonToDataParser) {
-        this.tuningService = tuningService;
-        this.carService = carService;
-        this.clientService = clientService;
+        this.tuningServiceImpl = tuningServiceImpl;
+        this.carServiceImpl = carServiceImpl;
+        this.clientServiceImpl = clientServiceImpl;
         this.jsonToDataParser = jsonToDataParser;
     }
     
@@ -42,17 +42,17 @@ public class InitializeStorage {
 
         if (tuningStream != null) {
             List<Tuning> tunings = jsonToDataParser.loader(tuningStream, Tuning.class);
-            tuningService.initTuning(tunings);
+            tuningServiceImpl.initTuning(tunings);
         }
 
         if (carStream != null) {
             List<Car> cars = jsonToDataParser.loader(carStream, Car.class);
-            carService.initCars(cars);
+            carServiceImpl.initCars(cars);
         }
 
         if (clientStream != null) {
             List<Client> clients = jsonToDataParser.loader(clientStream, Client.class);
-            clientService.initClients(clients);
+            clientServiceImpl.initClients(clients);
         }
     } catch (IOException e) {
         System.err.println("Error initializing storage: " + e.getMessage());
