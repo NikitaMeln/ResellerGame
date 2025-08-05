@@ -19,7 +19,8 @@ public class CarServiceImpl {
 
     public void initCars(List<Car> cars) {
         try {
-            carRepository.saveAllAndFlush(cars);
+            carRepository.deleteAllInBatch();
+            carRepository.saveAll(cars);
         } catch (Exception e) {
             System.err.println("Error initializing cars: " + e.getMessage());
         }

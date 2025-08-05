@@ -1,7 +1,13 @@
 package com.reseller.game.service.impl;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import com.reseller.game.model.entity.Tuning;
 import org.springframework.stereotype.Service;
 
 import com.reseller.game.model.entity.Client;
@@ -18,7 +24,7 @@ public class ClientServiceImpl {
 
     public void initClients(List<Client> clients) {
         try {
-            clientRepository.saveAllAndFlush(clients);
+            clientRepository.saveAll(clients);
         } catch (Exception e) {
             System.err.println("Error initializing clients: " + e.getMessage());
         }

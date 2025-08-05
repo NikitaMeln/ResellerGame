@@ -16,6 +16,6 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Override
     public Player findByTelegramId(String telegramId) {
-        return playerRepository.findById(telegramId).orElseThrow();
+        return playerRepository.findByTelegramId(telegramId).orElseThrow();
     }
 }

@@ -6,11 +6,7 @@ import java.util.Queue;
 
 import com.reseller.game.model.entity.types.Phase;
 import com.reseller.game.model.entity.types.RoomState;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,8 +28,15 @@ public class GameRoom {
     
     @ManyToMany
     private List<Player> players;
-    
-    private Queue<Player> playerQueue;
+
+    @ManyToMany
+    @JoinTable(
+            name = "room_player_queue",
+            joinColumns = @JoinColumn(name = "room_id"),
+            inverseJoinColumns = @JoinColumn(name = "player_id")
+    )
+    @OrderColumn(name = "queue_order")
+    private List<Player> playerQueue;
 
     @ManyToMany
     private List<Client> clients;

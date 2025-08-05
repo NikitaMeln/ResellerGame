@@ -76,7 +76,6 @@ public class RoomServiceImpl implements RoomService {
         room.setTunings(availableTunings);
         room.setClients(clients);
 
-        room.setPlayerQueue(new LinkedList<>(room.getPlayers()));
         room.setState(RoomState.STARTED);
 
         startGameLoop(room);
@@ -84,16 +83,18 @@ public class RoomServiceImpl implements RoomService {
 
     private void startGameLoop(GameRoom room) {
         while (room.getState() == RoomState.STARTED) {
-            Player currentPlayer = room.getPlayerQueue().poll();
+
+            Player currentPlayer = room.getPlayerQueue().isEmpty() ? null : room.getPlayerQueue().remove(0);
             if (currentPlayer == null) break;
             
             
             List<Car> carPull = carServiceImpl.getRandomCars(room.getCars(), (room.getPlayers().size() + 1));
 
-            // Обработка хода игрока
+            // Player turn logic
             // simulatePlayerTurn(currentPlayer, carPull);
 
-            room.getPlayerQueue().offer(currentPlayer); // Вернуть игрока в очередь
+            // Return player to Queue
+            room.getPlayerQueue().add(currentPlayer); // Вернуть игрока в очередь
         }
     }
 

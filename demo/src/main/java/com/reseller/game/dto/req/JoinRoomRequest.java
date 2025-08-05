@@ -1,4 +1,4 @@
-package com.reseller.game.dto;
+package com.reseller.game.dto.req;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,7 +1,6 @@
 package com.reseller.game.controller;
 
-import com.reseller.game.dto.JoinRoomRequest;
-import com.reseller.game.dto.RoomStateResponse;
+import com.reseller.game.dto.req.JoinRoomRequest;
 import com.reseller.game.mapper.GameRoomMapper;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
