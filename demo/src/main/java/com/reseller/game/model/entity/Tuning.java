@@ -2,6 +2,7 @@ package com.reseller.game.model.entity;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Objects;
 
 import com.reseller.game.model.entity.types.TuningType;
 import com.reseller.game.util.JsonMapConverter;
@@ -43,4 +44,19 @@ public class Tuning {
     */
     @Convert(converter = JsonMapConverter.class)
     private Map<String, Object> properties;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Tuning tuning = (Tuning) o;
+        return Objects.equals(name, tuning.name)
+                && Objects.equals(price, tuning.price)
+                && type == tuning.type
+                && Objects.equals(properties, tuning.properties);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, price, type, properties);
+    }
 }

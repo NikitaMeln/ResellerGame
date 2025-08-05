@@ -3,10 +3,13 @@ package com.reseller.game.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Slf4j
 @Component
 public class JsonToDataParser {
 
@@ -21,7 +24,7 @@ public class JsonToDataParser {
 
         List<T> dataList = objectMapper.readValue(inputStream, listType);
 
-        System.out.printf("Loaded %s rows for type %s%n", dataList.size(), clazz.getSimpleName());
+        log.debug("Loaded {} rows for type {}}", dataList.size(), clazz.getSimpleName());
 
         return dataList;
     }

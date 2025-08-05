@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -24,7 +25,8 @@ public class TuningServiceImpl implements TuningService {
     @Transactional
     public void initTuning(List<Tuning> tunings) {
         try {
-            tuningRepository.saveAllAndFlush(tunings);
+            tuningRepository.deleteAllInBatch();
+            tuningRepository.saveAll(tunings);
         } catch (Exception e) {
             log.error("Error initializing tunings table", e);
             // TODO: Implement customs exception

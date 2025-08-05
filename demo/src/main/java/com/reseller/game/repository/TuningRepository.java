@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface TuningRepository extends JpaRepository<Tuning, Long> {
     List<Tuning> findByType(TuningType type);
+
 }

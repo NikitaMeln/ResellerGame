@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface PlayerRepository extends JpaRepository<Player, String> {
 
-    @Query("select p from Player p where p.telegram_id = :telegramId")
-    Optional<Player> findById(@Param("telegramId") String telegramId);
+    @Query("SELECT p FROM Player p WHERE p.telegramId = :telegramId")
+    Optional<Player> findByTelegramId(@Param("telegramId") String telegramId);
 }

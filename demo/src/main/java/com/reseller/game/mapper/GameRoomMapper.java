@@ -1,6 +1,6 @@
 package com.reseller.game.mapper;
 
-import com.reseller.game.dto.RoomStateResponse;
+import com.reseller.game.dto.RoomStateDto;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
 import com.reseller.game.model.entity.types.RoomState;
@@ -8,20 +8,24 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
 @Mapper(componentModel = "spring")
 public interface  GameRoomMapper {
     // Entity -> DTO
     @Mapping(target = "roomState", source = "state", qualifiedByName = "stateToString")
-    RoomStateResponse toDto(GameRoom room);
+    @Mapping(target = "playerQueue", source = "playerQueue")
+    RoomStateDto toDto(GameRoom room);
 
     // DTO -> Entity
-    @Mapping(target = "state", source = "roomState", qualifiedByName = "stringToState")
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "players", ignore = true) // нет в DTO
-    GameRoom toEntity(RoomStateResponse dto);
+    @Mapping(target = "players", ignore = true)
+    @Mapping(target = "state", source = "roomState", qualifiedByName = "stringToState")
+    @Mapping(target = "playerQueue", source = "playerQueue")
+    @Mapping(target = "clients", source = "clients")
+    @Mapping(target = "cars", source = "cars")
+    @Mapping(target = "tunings", source = "tunings")
+    @Mapping(target = "startTime", source = "startTime")
+    @Mapping(target = "phase", source = "phase")
+    GameRoom toEntity(RoomStateDto dto);
 
 
     @Named("stateToString")
@@ -34,7 +38,4 @@ public interface  GameRoomMapper {
         return state != null ? RoomState.valueOf(state) : null;
     }
 
-    default Queue<Player> copyQueue(Queue<Player> src) {
-        return src == null ? null : new LinkedList<>(src);
-    }
 }

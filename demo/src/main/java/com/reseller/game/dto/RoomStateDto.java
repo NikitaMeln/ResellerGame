@@ -2,22 +2,23 @@ package com.reseller.game.dto;
 
 import com.reseller.game.model.entity.*;
 import com.reseller.game.model.entity.types.Phase;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Queue;
 
 @Getter
 @Setter
-public class RoomStateResponse {
+@Data
+public class RoomStateDto {
 
     private String roomState;
 
-    private Queue<Player> playerQueue;
-
     private List<Client> clients;
+
+    private List<Player> playerQueue;
 
     private List<Car> cars;
 

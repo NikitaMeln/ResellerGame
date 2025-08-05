@@ -1,17 +1,13 @@
 package com.reseller.game.model.entity;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
@@ -35,4 +31,20 @@ public class Client {
     private Integer randomCounter; // Counter for winner from 3 to 6
 
     private Boolean stockOrNot; // Indicates if the client is interested in stock cars or with tuning
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Client client)) return false;
+        return Objects.equals(name, client.name)
+                && Objects.equals(budget, client.budget)
+                && Objects.equals(yearForPurchase, client.yearForPurchase)
+                && Objects.equals(randomCounter, client.randomCounter)
+                && Objects.equals(stockOrNot, client.stockOrNot);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, budget, yearForPurchase, randomCounter, stockOrNot);
+    }
 }
