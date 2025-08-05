@@ -1,1 +1,1 @@
-Car Reseller Game
+![Car Reseller Game] (./logo/Logo.png)
