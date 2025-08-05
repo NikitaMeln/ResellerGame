@@ -1,1 +1,1 @@
-![Car Reseller Game] (./logo/Logo.png)
+![Car Reseller Game] (logo/Logo.png)
