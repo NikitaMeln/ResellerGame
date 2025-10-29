@@ -1,0 +1,120 @@
+ @import
+  url('https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap');
+/* Global styles for Telegram WebApp */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: #F5F5DC; /* Beige background */
+  color: #333;
+  font-size: 16px;
+  line-height: 1.4;
+  /* Telegram WebApp viewport */
+  max-width: 100vw;
+  max-height: 100vh;
+  position: relative;
+}
+
+/* Telegram WebApp specific styles */
+.telegram-app {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Button styles */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  font-family: Passion One, cursive, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  min-width: 200px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #65c6f3 60%, #000000 170%);
+  color: rgb(0, 0, 0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.452);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #65c6f3 60%, #000000 170%);
+  color: rgb(0, 0, 0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.452);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: rgb(0, 0, 0);
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.btn-success:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: rgb(0, 0, 0);
+  box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
+}
+
+/* Loading styles */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Responsive design for Telegram WebApp */
+@media (max-width: 480px) {
+  .btn {
+    min-width: 180px;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}

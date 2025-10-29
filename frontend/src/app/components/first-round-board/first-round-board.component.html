@@ -1,0 +1,193 @@
+<div class="first-round-container">
+  <!-- Header with game status -->
+  <app-game-header [playerState]="playerState"></app-game-header>
+
+  <!-- Main game board -->
+  <div class="game-board-layout">
+    <!-- Client Zone (Top) -->
+    <div class="zone clients-zone">
+      <div class="card-slots">
+        <div
+          *ngFor="let slot of clientZone; let i = index"
+          class="card-slot"
+          (drop)="onDropToClients(i, $event)"
+          (dragover)="onDragOver($event)"
+        >
+          <app-game-card
+            *ngIf="slot"
+            [card]="slot"
+          ></app-game-card>
+          <div *ngIf="!slot" class="empty-slot">
+            <span class="slot-placeholder"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tuning Zone -->
+    <div class="zone tuning-zone">
+      <div class="card-slots">
+        <div
+          *ngFor="let slot of tuningZone; let i = index"
+          class="card-slot tuning-card-slot"
+          (drop)="onDropToTuning(i, $event)"
+          (dragover)="onDragOver($event)"
+        >
+          <app-game-card
+            *ngIf="slot"
+            [card]="slot"
+          ></app-game-card>
+          <div *ngIf="!slot" class="empty-slot">
+            <span class="slot-placeholder"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Zone (Bottom) -->
+    <div class="zone market-zone">
+      <div class="card-slots">
+        <div
+          *ngFor="let slot of marketZone; let i = index"
+          class="card-slot"
+          (drop)="onDropToMarket(i, $event)"
+          (dragover)="onDragOver($event)"
+        >
+          <app-game-card
+            *ngIf="slot"
+            [card]="slot"
+          ></app-game-card>
+          <div *ngIf="!slot" class="empty-slot">
+            <span class="slot-placeholder"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Garage Separator -->
+  <div class="garage-separator">
+    <span class="garage-label">Garage</span>
+  </div>
+
+  <!-- Garage Zone -->
+  <div class="garage-slots-zone">
+    <div class="card-slots">
+      <div
+        *ngFor="let slot of garageZone; let i = index"
+        class="card-slot"
+        (drop)="onDropToGarage(i, $event)"
+        (dragover)="onDragOver($event)"
+      >
+        <app-game-card
+          *ngIf="slot"
+          [card]="slot"
+        ></app-game-card>
+        <div *ngIf="!slot" class="empty-slot">
+          <span class="slot-placeholder"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decks Section -->
+  <div class="decks-section">
+    <!-- Client Deck -->
+    <div class="deck-container" *ngIf="clientDeck">
+      <div class="deck" (click)="toggleDeck(clientDeck)">
+        <app-game-card
+          *ngIf="getTopCard(clientDeck) as topCard"
+          [card]="topCard"
+          [isInStack]="true"
+        ></app-game-card>
+        <div class="deck-count">{{ clientDeck.cards.length }}</div>
+      </div>
+
+      <!-- Expanded deck -->
+      <div class="deck-expanded" *ngIf="clientDeck.isExpanded">
+        <div class="expanded-cards">
+          <app-game-card
+            *ngFor="let card of clientDeck.cards"
+            [card]="card"
+            (cardDragStart)="onDragStart(card, clientDeck.id)"
+            (cardDragEnd)="onDragEnd()"
+            [attr.draggable]="true"
+          ></app-game-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Car Deck -->
+    <div class="deck-container" *ngIf="carDeck">
+      <div class="deck" (click)="toggleDeck(carDeck)">
+        <app-game-card
+          *ngIf="getTopCard(carDeck) as topCard"
+          [card]="topCard"
+          [isInStack]="true"
+        ></app-game-card>
+        <div class="deck-count">{{ carDeck.cards.length }}</div>
+      </div>
+
+      <div class="deck-expanded" *ngIf="carDeck.isExpanded">
+        <div class="expanded-cards">
+          <app-game-card
+            *ngFor="let card of carDeck.cards"
+            [card]="card"
+            (cardDragStart)="onDragStart(card, carDeck.id)"
+            (cardDragEnd)="onDragEnd()"
+            [attr.draggable]="true"
+          ></app-game-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tuning Deck -->
+    <div class="deck-container" *ngIf="tuningDeck">
+      <div class="deck" (click)="toggleDeck(tuningDeck)">
+        <app-game-card
+          *ngIf="getTopCard(tuningDeck) as topCard"
+          [card]="topCard"
+          [isInStack]="true"
+        ></app-game-card>
+        <div class="deck-count">{{ tuningDeck.cards.length }}</div>
+      </div>
+
+      <div class="deck-expanded" *ngIf="tuningDeck.isExpanded">
+        <div class="expanded-cards">
+          <app-game-card
+            *ngFor="let card of tuningDeck.cards"
+            [card]="card"
+            (cardDragStart)="onDragStart(card, tuningDeck.id)"
+            (cardDragEnd)="onDragEnd()"
+            [attr.draggable]="true"
+          ></app-game-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debuff Deck -->
+    <div class="deck-container" *ngIf="debuffDeck">
+      <div class="deck" (click)="toggleDeck(debuffDeck)">
+        <app-game-card
+          *ngIf="getTopCard(debuffDeck) as topCard"
+          [card]="topCard"
+          [isInStack]="true"
+        ></app-game-card>
+        <div class="deck-count">{{ debuffDeck.cards.length }}</div>
+      </div>
+
+      <div class="deck-expanded" *ngIf="debuffDeck.isExpanded">
+        <div class="expanded-cards">
+          <app-game-card
+            *ngFor="let card of debuffDeck.cards"
+            [card]="card"
+            (cardDragStart)="onDragStart(card, debuffDeck.id)"
+            (cardDragEnd)="onDragEnd()"
+            [attr.draggable]="true"
+          ></app-game-card>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

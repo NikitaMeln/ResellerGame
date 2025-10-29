@@ -1,0 +1,104 @@
+<div class="main-menu telegram-app">
+  <!-- Main Menu Screen -->
+  <div class="menu-container" [class.hidden]="showRules">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <img
+        *ngIf="!imageError"
+        src="/assets/Logo.png"
+        alt="Reseller Game Logo"
+        class="logo-image"
+        (error)="onImageError($event)"
+        (load)="onImageLoad()">
+
+      <!-- Fallback if image fails to load -->
+      <div *ngIf="imageError" class="logo-fallback">
+        <div class="logo-circle">
+          <span class="logo-text">🚗</span>
+          <div class="logo-subtitle">RESELLER</div>
+          <div class="logo-subtitle">GAME</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons Section -->
+    <div class="buttons-section">
+      <button class="btn btn-primary menu-btn" (click)="onPlayClick()">
+        PLAY
+      </button>
+
+      <button class="btn btn-secondary menu-btn" (click)="toggleRules()">
+        GAME RULES
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Rules Screen -->
+  <div class="rules-container" [class.visible]="showRules">
+    <div class="rules-header">
+      <h2>Правила игры</h2>
+      <button class="close-btn" (click)="closeRules()">×</button>
+    </div>
+
+    <div class="rules-content">
+      <div class="rule-section">
+        <h3>🎯 Цель игры</h3>
+        <p>Стать успешным перекупщиком автомобилей! Покупайте машины, улучшайте их тюнингом и продавайте клиентам с максимальной прибылью.</p>
+      </div>
+
+      <div class="rule-section">
+        <h3>🎮 Ход игры</h3>
+        <div class="rule-steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <div class="step-content">
+              <strong>Покупка автомобилей</strong>
+              <p>Каждый игрок покупает один автомобиль из доступных на рынке.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-number">2</span>
+            <div class="step-content">
+              <strong>Тюнинг (опционально)</strong>
+              <p>Улучшите свой автомобиль с помощью тюнинга для увеличения стоимости.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-number">3</span>
+            <div class="step-content">
+              <strong>Выбор клиента</strong>
+              <p>Выберите клиента, которому хотите продать автомобиль. Каждый клиент имеет свои требования и предпочтения.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-number">4</span>
+            <div class="step-content">
+              <strong>Продажа</strong>
+              <p>Бросьте кубик! Нужно выбросить 3 или больше для успешной продажи. Клиенты могут иметь модификаторы, усложняющие продажу.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-section">
+        <h3>🎲 Система броска</h3>
+        <p><strong>Базовое правило:</strong> Для успешной продажи нужно выбросить 3, 4, 5 или 6 на кубике.</p>
+        <p><strong>Модификаторы клиентов:</strong> Некоторые клиенты требуют более высокий бросок (например, +2 означает, что нужно выбросить 5 или 6).</p>
+      </div>
+
+      <div class="rule-section">
+        <h3>🏆 Победа</h3>
+        <p>Игрок с наибольшей прибылью в конце игры становится победителем!</p>
+      </div>
+    </div>
+
+    <div class="rules-footer">
+      <button class="btn btn-primary" (click)="closeRules()">
+        Понятно!
+      </button>
+    </div>
+  </div>
+</div>

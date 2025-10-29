@@ -1,0 +1,94 @@
+<div class="lobby-container">
+  <h1>Reseller Game - Лобби</h1>
+
+  <div class="player-info">
+    <label for="playerName">Ваше имя:</label>
+    <input
+      id="playerName"
+      type="text"
+      [(ngModel)]="playerName"
+      placeholder="Введите ваше имя"
+      maxlength="20"
+    />
+  </div>
+
+  <div class="create-room-section">
+    <h2>Создать новую комнату</h2>
+    <div class="form-group">
+      <label for="roomName">Название комнаты:</label>
+      <input
+        id="roomName"
+        type="text"
+        [(ngModel)]="newRoomName"
+        placeholder="Название комнаты"
+        maxlength="30"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="maxPlayers">Максимум игроков:</label>
+      <select id="maxPlayers" [(ngModel)]="maxPlayers">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </div>
+
+    <button
+      class="btn btn-primary"
+      (click)="createRoom()"
+      [disabled]="loading || !newRoomName.trim() || !playerName.trim()"
+    >
+      Создать комнату
+    </button>
+  </div>
+
+  <div class="rooms-section">
+    <div class="section-header">
+      <h2>Доступные комнаты</h2>
+      <button class="btn btn-secondary" (click)="refreshRooms()" [disabled]="loading">
+        Обновить
+      </button>
+    </div>
+
+    <div *ngIf="loading" class="loading">Загрузка...</div>
+
+    <div *ngIf="!loading && rooms.length === 0" class="no-rooms">
+      Нет доступных комнат. Создайте новую!
+    </div>
+
+    <div class="rooms-list" *ngIf="!loading && rooms.length > 0">
+      <div
+        class="room-card"
+        *ngFor="let room of rooms"
+        [class.full]="room.players.length >= room.maxPlayers"
+      >
+        <div class="room-info">
+          <h3>{{ room.name }}</h3>
+          <p>Игроки: {{ room.players.length }}/{{ room.maxPlayers }}</p>
+          <p>Статус: {{ room.status }}</p>
+          <div class="players-list">
+            <span
+              class="player-name"
+              *ngFor="let player of room.players"
+            >
+              {{ player.name }}
+            </span>
+          </div>
+        </div>
+
+        <div class="room-actions">
+          <button
+            class="btn btn-success"
+            (click)="joinRoom(room.id)"
+            [disabled]="room.players.length >= room.maxPlayers || room.status !== 'PENDING' || !playerName.trim()"
+          >
+            Присоединиться
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

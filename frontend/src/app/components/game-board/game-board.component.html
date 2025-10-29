@@ -1,0 +1,66 @@
+<div class="game-board">
+  <div class="board-grid">
+    <!-- Card Stacks -->
+    <div
+      *ngFor="let stack of cardStacks"
+      class="card-stack-container"
+      [class.expanded]="stack.isExpanded"
+      [style.grid-column]="stack.position.x"
+      [style.grid-row]="stack.position.y"
+    >
+      <!-- Stack Label -->
+      <div class="stack-label">
+        <span class="label-text">{{ getStackLabel(stack.type) }}</span>
+        <span class="label-count">({{ getStackCardCount(stack) }})</span>
+      </div>
+
+      <!-- Stack Cards -->
+      <div class="card-stack" (click)="onStackClick(stack)">
+        <!-- Collapsed view - show only top card -->
+        <div *ngIf="!stack.isExpanded" class="stack-collapsed">
+          <div *ngFor="let card of stack.cards; let i = index" class="card-in-stack-wrapper">
+            <app-game-card
+              [card]="card"
+              [isInStack]="true"
+              [stackIndex]="i"
+              [ngStyle]="getCardPositionInStack(i, stack.cards.length, false)"
+            ></app-game-card>
+          </div>
+
+          <!-- Click hint overlay -->
+          <div class="stack-overlay" *ngIf="stack.cards.length > 0">
+            <span class="hint-text">Нажмите для раскрытия</span>
+          </div>
+        </div>
+
+        <!-- Expanded view - show all cards -->
+        <div *ngIf="stack.isExpanded" class="stack-expanded">
+          <div class="expanded-cards-container">
+            <div *ngFor="let card of getStackCards(stack); let i = index" class="expanded-card-wrapper">
+              <app-game-card
+                [card]="card"
+                [isInStack]="false"
+                [stackIndex]="0"
+                [ngStyle]="getCardPositionInStack(i, stack.cards.length, true)"
+                (cardClick)="onCardClick($event)"
+                (cardDragStart)="onCardDragStart($event)"
+                (cardDragEnd)="onCardDragEnd($event)"
+              ></app-game-card>
+            </div>
+          </div>
+
+          <!-- Close hint -->
+          <div class="close-hint">
+            <span>Нажмите снова для закрытия</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="cardStacks.length === 0" class="empty-board">
+    <p>Игровое поле пусто</p>
+    <p class="empty-hint">Ожидание начала игры...</p>
+  </div>
+</div>

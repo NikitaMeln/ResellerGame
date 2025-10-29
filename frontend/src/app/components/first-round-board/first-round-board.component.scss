@@ -1,0 +1,356 @@
+.first-round-container {
+  padding: 10px;
+  min-height: 100vh;
+  background: #fbf7f0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+// Main game board layout
+.game-board-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1;
+}
+
+// Zone styling (Clients and Garage)
+.zone {
+  padding: 10px 0;
+
+  .zone-label {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: rgb(0, 0, 0);
+    margin-bottom: 10px;
+    font-family: 'Passion One';
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .card-slots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .card-slot {
+    position: relative;
+    width: 150px;
+    height: 240px;
+    transition: transform 0.2s ease, z-index 0s;
+    flex-shrink: 0;
+    z-index: 1;
+
+    &:hover {
+      transform: scale(1.3);
+      z-index: 10;
+    }
+  }
+
+  .empty-slot {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .slot-placeholder {
+      font-size: 32px;
+      opacity: 0.4;
+    }
+  }
+}
+
+.clients-zone {
+  border-top: 3px solid #000000;
+}
+
+.market-zone {
+  border-top: 3px solid #000000;
+}
+
+.garage-slots-zone {
+  padding: 10px 0;
+
+  .card-slots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .card-slot {
+    position: relative;
+    width: 150px;
+    height: 240px;
+    transition: transform 0.2s ease, z-index 0s;
+    flex-shrink: 0;
+    z-index: 1;
+
+    &:hover {
+      transform: scale(1.05);
+      z-index: 10;
+    }
+  }
+
+  .empty-slot {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.6);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .slot-placeholder {
+      font-size: 32px;
+      opacity: 0.4;
+    }
+  }
+}
+
+.tuning-zone {
+  border-top: 3px solid #000000;
+  padding: 10px 0;
+
+  .tuning-card-slot {
+    width: 150px;
+    height: 53px;
+    z-index: 1;
+
+    &:hover {
+      z-index: 10;
+    }
+  }
+}
+
+// Decks section
+.decks-section {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.deck-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.deck {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-10px) scale(1.05);
+  }
+
+  .deck-count {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #90929c 0%, #3a353f 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid white;
+  }
+}
+
+.deck-expanded {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 20px;
+  z-index: 1000;
+  animation: deckExpand 0.3s ease-out;
+
+  .expanded-cards {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    max-width: 90vw;
+    overflow-x: auto;
+
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    app-game-card {
+      flex-shrink: 0;
+      animation: cardFadeIn 0.3s ease-out;
+      animation-fill-mode: both;
+
+      @for $i from 1 through 10 {
+        &:nth-child(#{$i}) {
+          animation-delay: #{$i * 0.05}s;
+        }
+      }
+
+      &:hover {
+        transform: scale(1.1) translateY(-5px);
+        z-index: 10;
+      }
+    }
+  }
+}
+
+// Garage Separator
+.garage-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  position: relative;
+  margin: 5px 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 3px;
+    background: #000000;
+  }
+
+  &::before {
+    margin-right: 10px;
+  }
+
+  &::after {
+    margin-left: 10px;
+  }
+
+  .garage-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: #000000;
+    font-family: 'Passion One';
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 0 8px;
+  }
+}
+
+// Animations
+@keyframes deckExpand {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes cardFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Drag and drop visual feedback
+.card-slot {
+  &.drag-over {
+    background: rgba(102, 126, 234, 0.2);
+    border: 2px solid #667eea;
+  }
+}
+
+app-game-card[draggable="true"] {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+    opacity: 0.8;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .first-round-container {
+    padding: 10px;
+  }
+
+  .zone {
+    padding: 15px;
+
+    .zone-label {
+      font-size: 14px;
+    }
+
+    .card-slots {
+      gap: 10px;
+    }
+  }
+
+  .decks-section {
+    gap: 15px;
+    padding: 15px;
+  }
+
+  .deck-expanded .expanded-cards {
+    padding: 10px;
+    gap: 8px;
+  }
+}
