@@ -1,0 +1,49 @@
+.game-header {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 24px;
+  background: #e0e1e1;
+  border: 2px solid black;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+  font-family: 'Passion One';
+}
+
+.header-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .stat-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 22px;
+    color: rgb(8, 8, 8);
+    font-weight: 400;
+    margin-right: 8px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    color: rgb(24, 24, 24);
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .header-stat {
+    width: 100%;
+    min-width: unset;
+  }
+}

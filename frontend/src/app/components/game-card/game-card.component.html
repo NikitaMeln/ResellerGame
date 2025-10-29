@@ -1,0 +1,86 @@
+<div
+  class="game-card"
+  [class]="getCardTypeClass()"
+  [class.card-revealed]="!shouldShowBack()"
+  [class.card-selected]="card.isSelected"
+  [class.card-draggable]="card.isDraggable && !isInStack"
+  [class.card-in-stack]="isInStack"
+  [attr.draggable]="card.isDraggable && !isInStack"
+  [style.z-index]="stackIndex"
+  (click)="onCardClick()"
+  (dragstart)="onDragStart($event)"
+  (dragend)="onDragEnd($event)"
+>
+  <!-- Card Back (when hidden) -->
+  <div class="card-back" *ngIf="shouldShowBack()">
+    <div class="card-back-pattern"></div>
+  </div>
+
+  <!-- Card Front (when revealed) -->
+  <ng-container *ngIf="!shouldShowBack()">
+    <!-- Outer rectangle background -->
+    <div class="card-background"></div>
+
+    <!-- Inner beige rectangle -->
+    <div class="card-inner"></div>
+
+    <!-- Card title -->
+    <div class="card-title">{{ card.title }}</div>
+
+    <!-- Card stats -->
+    <div class="card-stats">
+      <ng-container [ngSwitch]="card.type">
+        <!-- Client stats -->
+        <ng-container *ngSwitchCase="'client'">
+          <ng-container *ngIf="asClientCard as clientCard">
+            <p>budget: {{ clientCard.stats.budget }}</p>
+            <p *ngIf="clientCard.stats.requirements && clientCard.stats.requirements.length > 0">
+              {{ clientCard.stats.requirements[0] }}
+            </p>
+            <p *ngIf="clientCard.stats.modifier && clientCard.stats.modifier !== 0">
+              &gt; {{ 3 + clientCard.stats.modifier }}
+            </p>
+          </ng-container>
+        </ng-container>
+
+        <!-- Car stats -->
+        <ng-container *ngSwitchCase="'car'">
+          <ng-container *ngIf="asCarCard as carCard">
+            <p></p>
+            
+            <p>price: {{ carCard.stats.price }}₴</p>
+            <p>year: {{ carCard.stats.year }}</p>
+          </ng-container>
+        </ng-container>
+
+        <!-- Tuning stats -->
+        <ng-container *ngSwitchCase="'tuning'">
+          <ng-container *ngIf="asTuningCard as tuningCard">
+            <p>price: {{ tuningCard.stats.price }}</p>
+            <p *ngIf="tuningCard.stats.category">{{ tuningCard.stats.category }}</p>
+          </ng-container>
+        </ng-container>
+
+        <!-- Debuff stats -->
+        <ng-container *ngSwitchCase="'debuff'">
+          <ng-container *ngIf="asDebuffCard as debuffCard">
+            <p>effect: {{ debuffCard.stats.effect > 0 ? '+' : '' }}{{ debuffCard.stats.effect }}</p>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+    </div>
+
+    <!-- Cube icon (dice) - only for client cards -->
+    <div class="card-cube" *ngIf="card.type === 'client'">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <rect width="13" height="13" fill="url(#cube-pattern)" />
+        <defs>
+          <pattern id="cube-pattern" patternUnits="userSpaceOnUse" width="13" height="13">
+            <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABY6+R8AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAdSURBVCiRY/hPAMxQGgOY1NTU/lNDAwMDwyiCoQQAtMUHBnQfzEwAAAAASUVORK5CYII="
+                   width="13" height="13" />
+          </pattern>
+        </defs>
+      </svg>
+    </div>
+  </ng-container>
+</div>

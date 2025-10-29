@@ -2,3 +2,33 @@
 /.idea/
 vscode
 idea
+local.gitignore
+
+# Java/Maven
+demo/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# Angular/Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.nx/
+frontend/coverage/
+frontend/.vscode/
+frontend/.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Claude AI
+.claude/
+CLAUDE.md

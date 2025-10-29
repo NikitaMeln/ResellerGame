@@ -1,0 +1,111 @@
+<div class="game-room-container" *ngIf="room">
+  <div class="game-header">
+    <h1>{{ room.name }}</h1>
+    <button class="btn btn-danger" (click)="leaveRoom()">Leave room</button>
+  </div>
+
+  <div class="game-info">
+    <div class="phase-info">
+      <h2>{{ getPhaseText() }}</h2>
+      <p *ngIf="room.currentPhase !== 'WAITING'">Раунд: {{ room.round }}</p>
+      <p *ngIf="room.currentPhase !== 'WAITING' && !isPlayerTurn">
+        Ход игрока: {{ getCurrentPlayerName() }}
+      </p>
+      <p *ngIf="isPlayerTurn" class="your-turn">Ваш ход!</p>
+    </div>
+
+    <div class="players-info">
+      <h3>Игроки ({{ room.players.length }}/{{ room.maxPlayers }})</h3>
+      <div class="players-grid">
+        <div
+          class="player-card"
+          *ngFor="let player of room.players"
+          [class.current-player]="player.id === currentPlayer?.id"
+          [class.active-turn]="player.id === room.players[room.currentPlayerIndex].id"
+        >
+          <h4>{{ player.name }}</h4>
+          <p>Деньги: ${{ player.money }}</p>
+          <p>Автомобили: {{ player.cars.length || 0 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-content">
+    <!-- Car Buying Phase -->
+    <div *ngIf="room.currentPhase === 'CAR_BUYING'" class="phase-content">
+      <h3>Доступные автомобили</h3>
+      <div class="cars-grid">
+        <div
+          class="car-card"
+          *ngFor="let car of availableCars"
+          [class.can-buy]="canBuyCar(car)"
+          [class.too-expensive]="!canBuyCar(car)"
+        >
+          <h4>{{ car.brand }} {{ car.model }}</h4>
+          <p>Год: {{ car.year }}</p>
+          <p>Цена: ${{ car.price }}</p>
+          <button
+            class="btn btn-primary"
+            (click)="buyCar(car)"
+            [disabled]="!canBuyCar(car)"
+          >
+            Купить
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Selection Phase -->
+    <div *ngIf="room.currentPhase === 'CLIENT_SELECTION'" class="phase-content">
+      <h3>Выберите клиента</h3>
+      <div class="clients-grid">
+        <div
+          class="client-card"
+          *ngFor="let client of availableClients"
+          [class.can-select]="canSelectClient(client)"
+        >
+          <h4>{{ client.name }}</h4>
+          <p>{{ client.description }}</p>
+          <p>Максимальная цена: ${{ client.maxPrice }}</p>
+          <p *ngIf="client.modifier !== 0">
+            Модификатор броска: {{ client.modifier > 0 ? '+' : '' }}{{ client.modifier }}
+          </p>
+          <div class="requirements" *ngIf="client.requirements?.length">
+            <h5>Требования:</h5>
+            <ul>
+              <li *ngFor="let req of client.requirements">{{ req }}</li>
+            </ul>
+          </div>
+          <button
+            class="btn btn-primary"
+            (click)="selectClient(client)"
+            [disabled]="!canSelectClient(client)"
+          >
+            Выбрать
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waiting Phase -->
+    <div *ngIf="room.currentPhase === 'WAITING'" class="phase-content">
+      <div class="waiting-message">
+        <h3>Ожидание других игроков...</h3>
+        <p>Игра начнется, когда будет достаточно игроков.</p>
+      </div>
+    </div>
+
+    <!-- Other phases placeholder -->
+    <div *ngIf="['CAR_TUNING', 'SELLING', 'FINISHED'].includes(room.currentPhase)" class="phase-content">
+      <div class="phase-placeholder">
+        <h3>{{ getPhaseText() }}</h3>
+        <p>Эта фаза еще не реализована в frontend.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!room" class="loading-container">
+  <p>Загрузка комнаты...</p>
+</div>
