@@ -1,12 +1,12 @@
 package com.reseller.game.mapper;
 
-import com.reseller.game.dto.RoomStateDto;
-import com.reseller.game.model.entity.GameRoom;
-import com.reseller.game.model.entity.Player;
-import com.reseller.game.model.entity.types.RoomState;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+
+import com.reseller.game.dto.RoomStateDto;
+import com.reseller.game.model.entity.GameRoom;
+import com.reseller.game.model.entity.types.RoomState;
 
 @Mapper(componentModel = "spring")
 public interface  GameRoomMapper {

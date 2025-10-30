@@ -37,7 +37,16 @@
             <p *ngIf="clientCard.stats.requirements && clientCard.stats.requirements.length > 0">
               {{ clientCard.stats.requirements[0] }}
             </p>
-            <p *ngIf="clientCard.stats.modifier && clientCard.stats.modifier !== 0">
+            <p *ngIf="clientCard.stats.modifier && clientCard.stats.modifier !== 0" class="modifier-with-cube">
+              <svg width="16" height="16" viewBox="0 0 13 13" fill="none">
+                <rect width="16" height="16" fill="url(#cube-pattern)" />
+                <defs>
+                  <pattern id="cube-pattern" patternUnits="userSpaceOnUse" width="13" height="13">
+                    <image href="assets/cube.png"
+                           width="13" height="13" />
+                  </pattern>
+                </defs>
+              </svg>
               &gt; {{ 3 + clientCard.stats.modifier }}
             </p>
           </ng-container>
@@ -70,17 +79,5 @@
       </ng-container>
     </div>
 
-    <!-- Cube icon (dice) - only for client cards -->
-    <div class="card-cube" *ngIf="card.type === 'client'">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-        <rect width="13" height="13" fill="url(#cube-pattern)" />
-        <defs>
-          <pattern id="cube-pattern" patternUnits="userSpaceOnUse" width="13" height="13">
-            <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABY6+R8AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAdSURBVCiRY/hPAMxQGgOY1NTU/lNDAwMDwyiCoQQAtMUHBnQfzEwAAAAASUVORK5CYII="
-                   width="13" height="13" />
-          </pattern>
-        </defs>
-      </svg>
-    </div>
   </ng-container>
 </div>

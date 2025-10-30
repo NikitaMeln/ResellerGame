@@ -1,15 +1,7 @@
 package com.reseller.game.service.impl;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import com.reseller.game.model.entity.Tuning;
 import org.springframework.stereotype.Service;
-
 import com.reseller.game.model.entity.Client;
 import com.reseller.game.repository.ClientRepository;
 

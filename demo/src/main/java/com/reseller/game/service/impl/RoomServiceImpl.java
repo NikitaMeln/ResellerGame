@@ -1,19 +1,12 @@
 package com.reseller.game.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.reseller.game.service.RoomService;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.reseller.game.model.entity.Car;
@@ -24,6 +17,12 @@ import com.reseller.game.model.entity.Tuning;
 import com.reseller.game.model.entity.types.RoomState;
 import com.reseller.game.model.entity.types.TuningType;
 import com.reseller.game.repository.GameRoomRepository;
+import com.reseller.game.service.RoomService;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
