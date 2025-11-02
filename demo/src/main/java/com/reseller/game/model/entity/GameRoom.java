@@ -2,10 +2,8 @@ package com.reseller.game.model.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import com.reseller.game.model.entity.types.Phase;
 import com.reseller.game.model.entity.types.RoomState;
-
+import com.reseller.game.model.entity.types.TurnStep;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -58,5 +56,10 @@ public class GameRoom {
 
     private RoomState state;
 
-    private Phase phase;
+    private Integer currentPlayerIndex;
+
+    private TurnStep turnStep;
+
+    @ManyToMany
+    private List<Tuning> negativeCards;
 }

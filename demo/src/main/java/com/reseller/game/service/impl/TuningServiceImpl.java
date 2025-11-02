@@ -50,4 +50,9 @@ public class TuningServiceImpl implements TuningService {
         int idx = ThreadLocalRandom.current().nextInt(filtered.size());
         return Optional.of(filtered.get(idx));
     }
+
+    @Transactional(readOnly = true)
+    public List<Tuning> getTuningsByType(TuningType type) {
+        return tuningRepository.findByType(type);
+    }
 }

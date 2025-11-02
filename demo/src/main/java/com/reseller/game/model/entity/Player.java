@@ -38,4 +38,7 @@ public class Player {
     private Integer totalProfit;
 
     private Integer soldCars;
+
+    @ManyToOne
+    private Tuning currentNegativeCard;
 }

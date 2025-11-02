@@ -5,9 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class JoinRoomRequest {
-    private String roomId;
+public class BuyCarRequest {
+    private Long roomId;
     private String telegramId;
-    private String username;
-    private String language;
+    private Long carId;
 }

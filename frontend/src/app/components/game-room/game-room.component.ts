@@ -1,9 +1,28 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { GameService } from '../../services/game.service';
-import { GameRoom, Player, Car, Client, GamePhase } from '../../models/game.models';
+import { WebSocketService } from '../../services/websocket.service';
+import { PlayerService } from '../../services/player.service';
+
+interface RoomState {
+  roomState: string;
+  clients: any[];
+  playerQueue: any[];
+  cars: any[];
+  tunings: any[];
+  startTime: string;
+  phase: string;
+  currentPlayerIndex: number;
+  turnStep: string;
+  negativeCards: any[];
+}
+
+interface TurnInfo {
+  currentPlayer: string;
+  turnStep: string;
+  negativeCard?: any;
+}
 
 @Component({
   selector: 'app-game-room',
@@ -12,50 +31,71 @@ import { GameRoom, Player, Car, Client, GamePhase } from '../../models/game.mode
   styleUrl: './game-room.component.scss'
 })
 export class GameRoomComponent implements OnInit, OnDestroy {
-  room: GameRoom | null = null;
-  currentPlayer: Player | null = null;
-  availableCars: Car[] = [];
-  availableClients: Client[] = [];
-  isPlayerTurn: boolean = false;
+  roomId: string = '';
+  roomState: RoomState | null = null;
+  turnInfo: TurnInfo | null = null;
+  myTelegramId: string = '';
+
+  availableCars: any[] = [];
+  availableTunings: any[] = [];
 
   private subscriptions: Subscription[] = [];
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private gameService: GameService
+    private websocketService: WebSocketService,
+    private playerService: PlayerService
   ) {}
 
   ngOnInit(): void {
     const roomId = this.route.snapshot.paramMap.get('id');
     if (!roomId) {
-      this.router.navigate(['/lobby']);
+      this.router.navigate(['/menu']);
       return;
     }
 
+    this.roomId = roomId;
+    const playerInfo = this.playerService.getCurrentPlayerInfo();
+    if (playerInfo) {
+      this.myTelegramId = playerInfo.telegramId;
+    }
+
+    // Get initial room state from navigation state (only in browser)
+    if (this.isBrowser) {
+      const navigation = this.router.getCurrentNavigation();
+      const initialRoomState = navigation?.extras?.state?.['initialRoomState'] ||
+                              (history.state as any)?.initialRoomState;
+
+      if (initialRoomState) {
+        console.log('Using initial room state:', initialRoomState);
+        this.roomState = initialRoomState;
+        this.updateAvailableCards();
+      }
+    }
+
+    // Subscribe to room state updates
     this.subscriptions.push(
-      this.gameService.getCurrentRoom().subscribe(room => {
-        this.room = room;
-        this.updatePlayerTurn();
+      this.websocketService.subscribeToRoomState(roomId).subscribe({
+        next: (state: RoomState) => {
+          console.log('Room state update:', state);
+          this.roomState = state;
+          this.updateAvailableCards();
+        },
+        error: (error) => console.error('Room state error:', error)
       })
     );
 
+    // Subscribe to turn updates
     this.subscriptions.push(
-      this.gameService.getCurrentPlayer().subscribe(player => {
-        this.currentPlayer = player;
-        this.updatePlayerTurn();
-      })
-    );
-
-    this.subscriptions.push(
-      this.gameService.getAvailableCars().subscribe(cars => {
-        this.availableCars = cars;
-      })
-    );
-
-    this.subscriptions.push(
-      this.gameService.getAvailableClients().subscribe(clients => {
-        this.availableClients = clients;
+      this.websocketService.subscribeToRoomTurn(roomId).subscribe({
+        next: (turnInfo: TurnInfo) => {
+          console.log('Turn update:', turnInfo);
+          this.turnInfo = turnInfo;
+        },
+        error: (error) => console.error('Turn info error:', error)
       })
     );
   }
@@ -64,62 +104,95 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  private updatePlayerTurn(): void {
-    this.isPlayerTurn = this.gameService.isPlayerTurn();
+  private updateAvailableCards(): void {
+    if (!this.roomState) return;
+
+    // Calculate how many cards to show: players.size() + 1
+    const playerCount = this.roomState.playerQueue?.length || 0;
+    const cardsToShow = playerCount + 1;
+
+    this.availableCars = this.roomState.cars?.slice(0, cardsToShow) || [];
+
+    // Filter only POSITIVE tunings
+    const positiveTunings = this.roomState.tunings?.filter(t => t.type === 'POSITIVE') || [];
+    this.availableTunings = positiveTunings.slice(0, cardsToShow);
   }
 
-  leaveRoom(): void {
-    this.gameService.leaveRoom();
-    this.router.navigate(['/lobby']);
+  isPending(): boolean {
+    return this.roomState?.roomState === 'PENDING';
   }
 
-  buyCar(car: Car): void {
-    if (this.canBuyCar(car)) {
-      this.gameService.buyCar(car.id);
+  isStarted(): boolean {
+    return this.roomState?.roomState === 'STARTED';
+  }
+
+  isMyTurn(): boolean {
+    return this.turnInfo?.currentPlayer === this.myTelegramId;
+  }
+
+  isCarSelection(): boolean {
+    return this.turnInfo?.turnStep === 'CAR_SELECTION';
+  }
+
+  isTuningSelection(): boolean {
+    return this.turnInfo?.turnStep === 'TUNING_SELECTION';
+  }
+
+  canStartGame(): boolean {
+    return this.isPending() && (this.roomState?.playerQueue?.length || 0) >= 1;
+  }
+
+  startGame(): void {
+    if (this.canStartGame()) {
+      this.websocketService.startGame(this.roomId);
     }
   }
 
-  canBuyCar(car: Car): boolean {
-    return this.isPlayerTurn &&
-           this.room?.currentPhase === GamePhase.CAR_BUYING &&
-           this.gameService.canBuyCar(car);
-  }
-
-  canSelectClient(client: Client): boolean {
-    return this.isPlayerTurn && this.room?.currentPhase === GamePhase.CLIENT_SELECTION;
-  }
-
-  selectClient(client: Client): void {
-    if (this.canSelectClient(client)) {
-      this.gameService.selectClient(client.id);
+  buyCar(car: any): void {
+    if (this.isMyTurn() && this.isCarSelection()) {
+      this.websocketService.buyCar(
+        parseInt(this.roomId),
+        this.myTelegramId,
+        car.id
+      );
     }
   }
 
-  getPhaseText(): string {
-    if (!this.room) return '';
+  buyTuning(tuning: any): void {
+    if (this.isMyTurn() && this.isTuningSelection()) {
+      this.websocketService.buyTuning(
+        parseInt(this.roomId),
+        this.myTelegramId,
+        tuning.id
+      );
+    }
+  }
 
-    switch (this.room.currentPhase) {
-      case GamePhase.WAITING:
-        return 'Ожидание игроков';
-      case GamePhase.CAR_BUYING:
-        return 'Покупка автомобилей';
-      case GamePhase.CAR_TUNING:
-        return 'Тюнинг автомобилей';
-      case GamePhase.CLIENT_SELECTION:
-        return 'Выбор клиентов';
-      case GamePhase.SELLING:
-        return 'Продажа автомобилей';
-      case GamePhase.FINISHED:
-        return 'Игра завершена';
-      default:
-        return '';
+  skipTurn(): void {
+    if (this.isMyTurn()) {
+      this.websocketService.skipAction(
+        parseInt(this.roomId),
+        this.myTelegramId
+      );
     }
   }
 
   getCurrentPlayerName(): string {
-    if (!this.room || !this.room.players[this.room.currentPlayerIndex]) {
-      return '';
-    }
-    return this.room.players[this.room.currentPlayerIndex].name;
+    if (!this.roomState || !this.turnInfo) return '';
+    const currentPlayer = this.roomState.playerQueue?.find(
+      p => p.telegramId === this.turnInfo?.currentPlayer
+    );
+    return currentPlayer?.username || '';
+  }
+
+  getPlayerCount(): number {
+    return this.roomState?.playerQueue?.length || 0;
+  }
+
+  getPhaseText(): string {
+    if (this.isPending()) return 'Waiting for players...';
+    if (this.isCarSelection()) return 'Car Selection Phase';
+    if (this.isTuningSelection()) return 'Tuning Selection Phase';
+    return 'Game in progress';
   }
 }

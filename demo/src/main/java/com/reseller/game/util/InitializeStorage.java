@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.reseller.game.model.entity.Car;
 import com.reseller.game.model.entity.Client;
 import com.reseller.game.model.entity.Tuning;
+import com.reseller.game.repository.GameRoomRepository;
 import com.reseller.game.service.impl.CarServiceImpl;
 import com.reseller.game.service.impl.ClientServiceImpl;
 import com.reseller.game.service.impl.TuningServiceImpl;
@@ -26,26 +27,32 @@ public class InitializeStorage {
     private final CarServiceImpl carServiceImpl;
     private final ClientServiceImpl clientServiceImpl;
     private final JsonToDataParser jsonToDataParser;
-    
+    private final GameRoomRepository gameRoomRepository;
+
     @PostConstruct
     private void init() {
-        try (InputStream tuningStream = getClass().getResourceAsStream("/data/tuning-data-en.json");
-         InputStream carStream = getClass().getResourceAsStream("/data/cars.json");
-         InputStream clientStream = getClass().getResourceAsStream("/data/client.json")) {
+        try {
+            // First, clear all game rooms to avoid foreign key violations
+            gameRoomRepository.deleteAllInBatch();
 
-            if (tuningStream != null) {
-                List<Tuning> tunings = jsonToDataParser.loader(tuningStream, Tuning.class);
-                tuningServiceImpl.initTuning(tunings);
-            }
+            try (InputStream tuningStream = getClass().getResourceAsStream("/data/tuning-data-en.json");
+             InputStream carStream = getClass().getResourceAsStream("/data/cars.json");
+             InputStream clientStream = getClass().getResourceAsStream("/data/client.json")) {
 
-            if (carStream != null) {
-                List<Car> cars = jsonToDataParser.loader(carStream, Car.class);
-                carServiceImpl.initCars(cars);
-            }
+                if (tuningStream != null) {
+                    List<Tuning> tunings = jsonToDataParser.loader(tuningStream, Tuning.class);
+                    tuningServiceImpl.initTuning(tunings);
+                }
 
-            if (clientStream != null) {
-                List<Client> clients = jsonToDataParser.loader(clientStream, Client.class);
-                clientServiceImpl.initClients(clients);
+                if (carStream != null) {
+                    List<Car> cars = jsonToDataParser.loader(carStream, Car.class);
+                    carServiceImpl.initCars(cars);
+                }
+
+                if (clientStream != null) {
+                    List<Client> clients = jsonToDataParser.loader(clientStream, Client.class);
+                    clientServiceImpl.initClients(clients);
+                }
             }
         } catch (IOException e) {
             System.err.println("Error initializing storage: " + e.getMessage());

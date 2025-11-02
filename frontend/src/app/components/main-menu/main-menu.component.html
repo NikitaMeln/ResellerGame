@@ -21,9 +21,24 @@
       </div>
     </div>
 
+    <!-- Username Input Section -->
+    <div class="username-section">
+      <input
+        type="text"
+        [(ngModel)]="username"
+        placeholder="Enter your username"
+        class="username-input"
+        maxlength="20"
+        (keyup.enter)="!isPlayButtonDisabled && onPlayClick()">
+    </div>
+
     <!-- Buttons Section -->
     <div class="buttons-section">
-      <button class="btn btn-primary menu-btn" (click)="onPlayClick()">
+      <button
+        class="btn btn-primary menu-btn"
+        (click)="onPlayClick()"
+        [disabled]="isPlayButtonDisabled"
+        [class.disabled]="isPlayButtonDisabled">
         PLAY
       </button>
 

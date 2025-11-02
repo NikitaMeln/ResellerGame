@@ -1,7 +1,7 @@
 package com.reseller.game.dto;
 
-import com.reseller.game.model.entity.*;
 import com.reseller.game.model.entity.types.Phase;
+import com.reseller.game.model.entity.types.TurnStep;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,16 +16,22 @@ public class RoomStateDto {
 
     private String roomState;
 
-    private List<Client> clients;
+    private List<ClientDto> clients;
 
-    private List<Player> playerQueue;
+    private List<PlayerDto> playerQueue;
 
-    private List<Car> cars;
+    private List<CarDto> cars;
 
-    private List<Tuning> tunings;
+    private List<TuningDto> tunings;
 
     private LocalDateTime startTime;
 
     private Phase phase;
+
+    private Integer currentPlayerIndex;
+
+    private TurnStep turnStep;
+
+    private List<TuningDto> negativeCards;
 
 }

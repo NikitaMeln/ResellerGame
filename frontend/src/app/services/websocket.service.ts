@@ -12,7 +12,7 @@ export class WebSocketService {
 
   constructor() {
     this.stompClient = new Client({
-      webSocketFactory: () => new (SockJS as any)('/rg'),
+      webSocketFactory: () => new (SockJS as any)('http://localhost:8080/rg'),
       connectHeaders: {},
       debug: (str) => {
         console.log('STOMP Debug:', str);
@@ -100,7 +100,32 @@ export class WebSocketService {
     return this.subscribe(`/topic/room.${roomId}`);
   }
 
+  subscribeToRoomState(roomId: string): Observable<any> {
+    return this.subscribe(`/topic/room.${roomId}.state`);
+  }
+
+  subscribeToRoomTurn(roomId: string): Observable<any> {
+    return this.subscribe(`/topic/room.${roomId}.turn`);
+  }
+
   subscribeToPlayerQueue(playerId: string): Observable<any> {
     return this.subscribe(`/queue/player.${playerId}`);
+  }
+
+  // Game action methods
+  startGame(roomId: string): void {
+    this.publish('/app/game.start', { roomId });
+  }
+
+  buyCar(roomId: number, telegramId: string, carId: number): void {
+    this.publish('/app/game.buyCar', { roomId, telegramId, carId });
+  }
+
+  buyTuning(roomId: number, telegramId: string, tuningId: number): void {
+    this.publish('/app/game.buyTuning', { roomId, telegramId, tuningId });
+  }
+
+  skipAction(roomId: number, telegramId: string): void {
+    this.publish('/app/game.skip', { roomId, telegramId });
   }
 }

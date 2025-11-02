@@ -4,4 +4,5 @@ import com.reseller.game.model.entity.Player;
 
 public interface PlayerService {
     Player findByTelegramId(String telegramId);
+    Player createOrGetPlayer(String telegramId, String username, String language);
 }

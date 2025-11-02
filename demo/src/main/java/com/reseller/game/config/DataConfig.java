@@ -16,7 +16,7 @@ public class DataConfig {
     @Autowired
     private DataSourceProperties dataSourceProperties;
 
-    @Bean(name = "dataSource")
+    @Bean(name = "realDataSource")
     @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource realDataSource() {
         return dataSourceProperties
@@ -24,7 +24,7 @@ public class DataConfig {
                 .build();
     }
 
-    @Bean
+    @Bean(name = "dataSource")
     @Primary
     public DataSource dataSource() {
         return new DataSourceSpy(realDataSource());
