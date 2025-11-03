@@ -112,6 +112,7 @@ export interface CarCard extends GameCard {
     model: string;
     year: number;
     price: number;
+    tuning?: Tuning[]; // Optional array of tunings applied to this car
   };
 }
 
@@ -121,6 +122,7 @@ export interface ClientCard extends GameCard {
   stats: {
     budget: number;
     modifier?: number;
+    year?: string | number;
     requirements?: string[];
   };
 }

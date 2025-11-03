@@ -27,10 +27,10 @@ public class Player {
 
     private Integer balance;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "player_cars",
-            joinColumns = @JoinColumn(name = "player_id"),
+            joinColumns = @JoinColumn(name = "player_telegram_id", referencedColumnName = "telegramId"),
             inverseJoinColumns = @JoinColumn(name = "car_id")
     )
     private List<Car> cars;

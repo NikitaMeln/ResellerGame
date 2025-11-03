@@ -44,12 +44,27 @@ public class GameRoom {
     private List<Player> playerQueue;
 
     @ManyToMany
+    @JoinTable(
+            name = "game_room_clients",
+            joinColumns = @JoinColumn(name = "game_room_id"),
+            inverseJoinColumns = @JoinColumn(name = "client_id")
+    )
     private List<Client> clients;
-    
+
     @ManyToMany
+    @JoinTable(
+            name = "game_room_cars",
+            joinColumns = @JoinColumn(name = "game_room_id"),
+            inverseJoinColumns = @JoinColumn(name = "car_id")
+    )
     private List<Car> cars;
-    
+
     @ManyToMany
+    @JoinTable(
+            name = "game_room_tunings",
+            joinColumns = @JoinColumn(name = "game_room_id"),
+            inverseJoinColumns = @JoinColumn(name = "tuning_id")
+    )
     private List<Tuning> tunings;
 
     private LocalDateTime startTime;

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,4 +16,5 @@ public class PlayerDto {
     private Integer garageSize;
     private Integer totalProfit;
     private Integer soldCars;
+    private List<CarDto> cars;
 }

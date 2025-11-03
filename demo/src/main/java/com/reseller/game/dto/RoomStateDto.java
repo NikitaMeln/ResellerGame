@@ -1,6 +1,5 @@
 package com.reseller.game.dto;
 
-import com.reseller.game.model.entity.types.Phase;
 import com.reseller.game.model.entity.types.TurnStep;
 import lombok.Data;
 import lombok.Getter;
@@ -25,8 +24,6 @@ public class RoomStateDto {
     private List<TuningDto> tunings;
 
     private LocalDateTime startTime;
-
-    private Phase phase;
 
     private Integer currentPlayerIndex;
 

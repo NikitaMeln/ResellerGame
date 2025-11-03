@@ -6,7 +6,11 @@ import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+
 import com.reseller.game.model.entity.Car;
 import com.reseller.game.model.entity.Client;
 import com.reseller.game.model.entity.GameRoom;
@@ -17,11 +21,11 @@ import com.reseller.game.model.entity.types.TuningType;
 import com.reseller.game.model.entity.types.TurnStep;
 import com.reseller.game.repository.GameRoomRepository;
 import com.reseller.game.service.RoomService;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Slf4j
 @Service
@@ -37,11 +41,13 @@ public class RoomServiceImpl implements RoomService {
     private final Random random = new Random();
 
     private final GameRoomRepository gameRoomRepository;
+    private final com.reseller.game.repository.PlayerRepository playerRepository;
     private final CarServiceImpl carServiceImpl;
     private final TuningServiceImpl tuningServiceImpl;
     private final ClientServiceImpl clientServiceImpl;
     private final SimpMessagingTemplate ws;
     private final com.reseller.game.mapper.GameRoomMapper gameRoomMapper;
+    private final TransactionTemplate transactionTemplate;
 
     @Override
     @Transactional
@@ -71,54 +77,59 @@ public class RoomServiceImpl implements RoomService {
 
     private void scheduleStart(GameRoom room) {
         scheduler.schedule(() -> {
-            // Reload room to get latest player count
-            GameRoom managedRoom = gameRoomRepository.findById(room.getId()).orElse(null);
-            if (managedRoom != null && managedRoom.getPlayers().size() >= 1) {
-                log.info("Starting game for room {} with {} players", managedRoom.getId(), managedRoom.getPlayers().size());
-                initializeRoom(managedRoom);
-            } else {
-                log.warn("Not enough players in room {}, closing room", room.getId());
-            }
+            transactionTemplate.execute(status -> {
+                // Reload room to get latest player count with all associations eagerly loaded
+                GameRoom managedRoom = gameRoomRepository.findById(room.getId()).orElse(null);
+                if (managedRoom != null && managedRoom.getPlayers().size() >= MIN_PLAYERS) {
+                    initializeRoom(managedRoom);
+                } else {
+                    log.warn("Not enough players in room {}, closing room", room.getId());
+                }
+                return null;
+            });
         }, 10, TimeUnit.SECONDS);
     }
 
     @Transactional
     private void initializeRoom(GameRoom room) {
-        // Set game to STARTED state
-        room.setState(RoomState.STARTED);
-        room.setCurrentPlayerIndex(0);
-        room.setTurnStep(TurnStep.CAR_SELECTION);
+        try {
+            // Set game to STARTED state
+            room.setState(RoomState.STARTED);
+            room.setCurrentPlayerIndex(0);
+            room.setTurnStep(TurnStep.CAR_SELECTION);
 
-        // Initialize negative cards (debuff cards from tuning with NEGATIVE type)
-        List<Tuning> negativeCards = tuningServiceImpl.getTuningsByType(TuningType.NEGATIVE);
-        room.setNegativeCards(negativeCards);
+            // Initialize negative cards (debuff cards from tuning with NEGATIVE type)
+            List<Tuning> negativeCards = tuningServiceImpl.getTuningsByType(TuningType.NEGATIVE);
+            room.setNegativeCards(negativeCards);
 
-        gameRoomRepository.save(room);
+            gameRoomRepository.save(room);
 
-        // Reload room with all collections for WebSocket message
-        GameRoom updatedRoom = gameRoomRepository.findById(room.getId()).orElseThrow();
+            // Reload room with all collections for WebSocket message
+            GameRoom updatedRoom = gameRoomRepository.findById(room.getId()).orElseThrow();
 
-        // Notify all players in room that game has started
-        ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".state",
-                gameRoomMapper.toDto(updatedRoom));
+            // Notify all players in room that game has started
+            ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".state",
+                    gameRoomMapper.toDto(updatedRoom));
 
-        log.info("Game started for room {}", updatedRoom.getId());
-    }
+            // Notify each player individually that game has started (for lobby navigation)
+            for (Player p : updatedRoom.getPlayers()) {
+                ws.convertAndSend("/topic/player." + p.getTelegramId() + ".room-assigned",
+                        java.util.Map.of("roomId", updatedRoom.getId(),
+                                         "roomState", updatedRoom.getState().name()));
+            }
 
-    private void startGameLoop(GameRoom room) {
-        while (room.getState() == RoomState.STARTED) {
+            log.info("Game started for room {}", updatedRoom.getId());
 
-            Player currentPlayer = room.getPlayerQueue().isEmpty() ? null : room.getPlayerQueue().remove(0);
-            if (currentPlayer == null) break;
-            
-            
-            List<Car> carPull = carServiceImpl.getRandomCars(room.getCars(), (room.getPlayers().size() + 1));
-
-            // Player turn logic
-            // simulatePlayerTurn(currentPlayer, carPull);
-
-            // Return player to Queue
-            room.getPlayerQueue().add(currentPlayer); // Вернуть игрока в очередь
+            // Notify current player about their turn
+            Player currentPlayer = getCurrentPlayer(updatedRoom);
+            if (currentPlayer != null) {
+                ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".turn",
+                        java.util.Map.of("currentPlayer", currentPlayer.getTelegramId(),
+                                "turnStep", updatedRoom.getTurnStep()));
+            }
+        } catch (Exception e) {
+            log.error("initializeRoom - ERROR initializing room {}: {}", room.getId(), e.getMessage(), e);
+            throw e;
         }
     }
 
@@ -128,23 +139,6 @@ public class RoomServiceImpl implements RoomService {
             .toList();
         return filtered.get(random.nextInt(filtered.size()));
     }
-
-    // private void simulatePlayerTurn(Player player, List<Car> pull) {
-    //     // Пример симуляции: игрок всегда покупает первую машину
-    //     Car selected = pull.get(0);
-
-    //     player.getCars().add(selected);
-
-    //     // Случайная продажа с прибылью
-    //     Integer profit = selected.getPrice().add(200);
-    //     player.setTotalProfit(player.getTotalProfit().add(profit));
-    //     player.setSoldCars(player.getSoldCars() + 1);
-
-    //     // Статистика по тюнингу
-    //     GameRoom.RoomStatistics stats = player.getRoom().getStatistics();
-    //     stats.incrementTuning(selected.getPositiveTuning());
-    //     stats.incrementTuning(selected.getNegativeTuning());
-    // }
 
     private boolean checkWinCondition(Player player) {
         return player.getSoldCars() >= TOTAL_TO_SOLD ||
@@ -190,8 +184,15 @@ public class RoomServiceImpl implements RoomService {
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
         List<Player> players = managedRoom.getPlayers();
+        log.info("addPlayer - Room {} current players: {}", managedRoom.getId(), players.size());
+        boolean isFirstPlayer = players.isEmpty();
+        log.info("addPlayer - isFirstPlayer: {}", isFirstPlayer);
+
         if (!players.contains(player)) {
             players.add(player);
+            log.info("addPlayer - Added player {} to room {}", player.getTelegramId(), managedRoom.getId());
+        } else {
+            log.info("addPlayer - Player {} already in room {}", player.getTelegramId(), managedRoom.getId());
         }
 
         // Also add to player queue
@@ -205,6 +206,13 @@ public class RoomServiceImpl implements RoomService {
         }
 
         gameRoomRepository.save(managedRoom);
+        // Schedule auto-start when first player joins
+        if (isFirstPlayer) {
+            log.info("First player joined room {}, scheduling auto-start", managedRoom.getId());
+            scheduleStart(managedRoom);
+        } else {
+            log.info("Not scheduling - room {} already has {} players", managedRoom.getId(), players.size());
+        }
     }
 
     @Transactional
@@ -250,6 +258,9 @@ public class RoomServiceImpl implements RoomService {
 
         // Add car to player's garage
         player.getCars().add(car);
+        
+        // Remove car from available cars in market
+        boolean removed = room.getCars().removeIf(c -> c.getId().equals(car.getId()));
 
         // Deduct balance
         player.setBalance(player.getBalance() - car.getPrice().intValue());
@@ -257,6 +268,9 @@ public class RoomServiceImpl implements RoomService {
         // Assign random negative card (debuff)
         Tuning negativeCard = getRandomTuning(room.getNegativeCards(), TuningType.NEGATIVE);
         player.setCurrentNegativeCard(negativeCard);
+
+        // Save player changes
+        playerRepository.save(player);
 
         // Move to tuning selection
         room.setTurnStep(TurnStep.TUNING_SELECTION);
@@ -266,7 +280,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Transactional
     @Override
-    public void processBuyTuning(GameRoom room, Player player, Tuning tuning) {
+    public void processBuyTuning(GameRoom room, Player player, Tuning tuning, Car car) {
         if (!isCurrentPlayer(room, player)) {
             throw new IllegalStateException("Not this player's turn");
         }
@@ -275,16 +289,20 @@ public class RoomServiceImpl implements RoomService {
             throw new IllegalStateException("Cannot buy tuning at this step");
         }
 
-        // Get the last car (recently bought)
+        // Verify player owns this car
         List<Car> playerCars = player.getCars();
         if (playerCars.isEmpty()) {
             throw new IllegalStateException("Player has no cars");
         }
 
-        Car lastCar = playerCars.get(playerCars.size() - 1);
+        boolean ownsThisCar = playerCars.stream()
+                .anyMatch(c -> c.getId().equals(car.getId()));
+        if (!ownsThisCar) {
+            throw new IllegalStateException("Player does not own this car");
+        }
 
-        // Add tuning to car
-        carServiceImpl.setTuning(lastCar, tuning);
+        // Add tuning to the specified car
+        carServiceImpl.setTuning(car, tuning);
 
         // Deduct balance
         player.setBalance(player.getBalance() - tuning.getPrice().intValue());
@@ -340,19 +358,18 @@ public class RoomServiceImpl implements RoomService {
         int nextIndex = (currentIndex + 1) % playerCount;
         room.setCurrentPlayerIndex(nextIndex);
 
-        // Reset to car selection step
-        room.setTurnStep(TurnStep.CAR_SELECTION);
-
-        // If we completed a full round, check if we should move to next phase
+        // If we completed a full round (all players finished buying phase)
         if (nextIndex == 0) {
-            // All players completed their turn in BUY_FORWARD phase
-            if (room.setTurnStep() == TurnStep.CAR_SELECTION) {
-                room.setState(TurnStep.S);
-                // Reverse the player order for selling phase
-                List<Player> reversedQueue = new java.util.ArrayList<>(room.getPlayerQueue());
-                java.util.Collections.reverse(reversedQueue);
-                room.setPlayerQueue(reversedQueue);
-            }
+            // Transition to selling phase
+            room.setTurnStep(TurnStep.CHOICE_CLIENT_TO_SELL);
+
+            // Reverse the player order for selling phase
+            List<Player> reversedQueue = new java.util.ArrayList<>(room.getPlayerQueue());
+            java.util.Collections.reverse(reversedQueue);
+            room.setPlayerQueue(reversedQueue);
+        } else {
+            // Continue buying phase - reset to car selection for next player
+            room.setTurnStep(TurnStep.CAR_SELECTION);
         }
     }
 }

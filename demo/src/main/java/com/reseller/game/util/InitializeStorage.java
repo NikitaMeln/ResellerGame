@@ -4,19 +4,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import com.reseller.game.model.entity.Car;
 import com.reseller.game.model.entity.Client;
 import com.reseller.game.model.entity.Tuning;
-import com.reseller.game.repository.GameRoomRepository;
 import com.reseller.game.service.impl.CarServiceImpl;
 import com.reseller.game.service.impl.ClientServiceImpl;
 import com.reseller.game.service.impl.TuningServiceImpl;
 
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -27,35 +26,48 @@ public class InitializeStorage {
     private final CarServiceImpl carServiceImpl;
     private final ClientServiceImpl clientServiceImpl;
     private final JsonToDataParser jsonToDataParser;
-    private final GameRoomRepository gameRoomRepository;
-
+    
     @PostConstruct
     private void init() {
         try {
-            // First, clear all game rooms to avoid foreign key violations
-            gameRoomRepository.deleteAllInBatch();
+            // Check if data already exists - load only if tables are empty
+            boolean carsExist = carServiceImpl.getAllCars() != null && !carServiceImpl.getAllCars().isEmpty();
+            boolean tuningsExist = tuningServiceImpl.getAllTunings() != null && !tuningServiceImpl.getAllTunings().isEmpty();
+            boolean clientsExist = clientServiceImpl.getAllClients() != null && !clientServiceImpl.getAllClients().isEmpty();
+
+            if (carsExist && tuningsExist && clientsExist) {
+                log.info("Data already exists in database, skipping initialization");
+                return;
+            }
+
+            log.info("Initializing database with data from JSON files...");
 
             try (InputStream tuningStream = getClass().getResourceAsStream("/data/tuning-data-en.json");
              InputStream carStream = getClass().getResourceAsStream("/data/cars.json");
              InputStream clientStream = getClass().getResourceAsStream("/data/client.json")) {
 
-                if (tuningStream != null) {
+                if (tuningStream != null && !tuningsExist) {
                     List<Tuning> tunings = jsonToDataParser.loader(tuningStream, Tuning.class);
                     tuningServiceImpl.initTuning(tunings);
+                    log.info("Loaded {} tunings", tunings.size());
                 }
 
-                if (carStream != null) {
+                if (carStream != null && !carsExist) {
                     List<Car> cars = jsonToDataParser.loader(carStream, Car.class);
                     carServiceImpl.initCars(cars);
+                    log.info("Loaded {} cars", cars.size());
                 }
 
-                if (clientStream != null) {
+                if (clientStream != null && !clientsExist) {
                     List<Client> clients = jsonToDataParser.loader(clientStream, Client.class);
                     clientServiceImpl.initClients(clients);
+                    log.info("Loaded {} clients", clients.size());
                 }
             }
+
+            log.info("Database initialization complete");
         } catch (IOException e) {
-            System.err.println("Error initializing storage: " + e.getMessage());
+            log.error("Error initializing storage: {}", e.getMessage(), e);
         }
     }
 

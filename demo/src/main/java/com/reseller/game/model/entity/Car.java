@@ -33,7 +33,7 @@ public class Car {
 
     private BigDecimal price;
 
-    @ManyToMany
+    @ManyToMany(fetch = jakarta.persistence.FetchType.EAGER)
     private List<Tuning> tuning;
 
     @Override

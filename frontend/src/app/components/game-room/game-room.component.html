@@ -1,124 +1,117 @@
 <div class="game-room-container" *ngIf="roomState">
-  <!-- Header with room info -->
-  <div class="game-header">
-    <h1>Room #{{ roomId }}</h1>
-    <div class="header-info">
-      <span class="player-count">Players: {{ getPlayerCount() }}/5</span>
-      <span class="phase-badge">{{ getPhaseText() }}</span>
+  <!-- Header with game status -->
+  <app-game-header [playerState]="playerState"></app-game-header>
+
+  <!-- Main game board -->
+  <div class="game-board-layout">
+    <!-- Client Zone (Top) -->
+    <div class="zone clients-zone">
+      <div class="card-slots">
+        <div
+          *ngFor="let slot of clientZone; let i = index"
+          class="card-slot"
+        >
+          <app-game-card
+            *ngIf="slot"
+            [card]="slot"
+            (click)="onClientClick(slot)"
+          ></app-game-card>
+          <div *ngIf="!slot" class="empty-slot">
+            <span class="slot-placeholder"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tuning Zone -->
+    <div class="zone tuning-zone">
+      <div class="card-slots">
+        <div
+          *ngFor="let slot of tuningZone; let i = index"
+          class="card-slot tuning-card-slot"
+        >
+          <app-game-card
+            *ngIf="slot"
+            [card]="slot"
+            (click)="onTuningClick(slot)"
+            (cardDragStart)="onTuningDragStart($event)"
+            (cardDragEnd)="onTuningDragEnd($event)"
+            [class.clickable]="isMyTurn() && isTuningSelection()"
+          ></app-game-card>
+          <div *ngIf="!slot" class="empty-slot">
+            <span class="slot-placeholder"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Zone (Bottom) -->
+    <div class="zone market-zone">
+      <div class="card-slots">
+        <div
+          *ngFor="let slot of marketZone; let i = index"
+          class="card-slot"
+        >
+          <app-game-card
+            *ngIf="slot"
+            [card]="slot"
+            (click)="onCarClick(slot)"
+            (cardDragStart)="onCarDragStart($event)"
+            (cardDragEnd)="onCarDragEnd($event)"
+            [class.clickable]="isMyTurn() && isCarSelection()"
+          ></app-game-card>
+          <div *ngIf="!slot" class="empty-slot">
+            <span class="slot-placeholder"></span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- PENDING State: Waiting for players -->
-  <div *ngIf="isPending()" class="waiting-room">
-    <h2>Waiting for players...</h2>
-    <p>{{ getPlayerCount() }} player(s) in room</p>
-
-    <div class="players-list">
-      <div class="player-item" *ngFor="let player of roomState.playerQueue">
-        <span class="player-name">{{ player.username }}</span>
-        <span *ngIf="player.telegramId === myTelegramId" class="you-badge">(You)</span>
-      </div>
-    </div>
-
-    <button
-      class="btn btn-primary btn-start"
-      (click)="startGame()"
-      [disabled]="!canStartGame()">
-      Start Game
-    </button>
+  <!-- Garage Separator -->
+  <div class="garage-separator">
+    <span class="garage-label">Garage</span>
   </div>
 
-  <!-- STARTED State: Game in progress -->
-  <div *ngIf="isStarted()" class="game-content">
-    <!-- Turn indicator -->
-    <div class="turn-indicator">
-      <div *ngIf="isMyTurn()" class="your-turn-banner">
-        <h2>🎯 YOUR TURN!</h2>
-        <p *ngIf="isCarSelection()">Select a car to buy</p>
-        <p *ngIf="isTuningSelection()">Select tuning for your car</p>
-      </div>
-      <div *ngIf="!isMyTurn()" class="waiting-turn">
-        <p>Waiting for <strong>{{ getCurrentPlayerName() }}</strong></p>
-      </div>
-    </div>
-
-    <!-- CAR SELECTION Phase -->
-    <div *ngIf="isCarSelection()" class="selection-phase">
-      <h3>Available Cars</h3>
-      <div class="cards-grid">
-        <div
-          class="card car-card"
-          *ngFor="let car of availableCars"
-          [class.disabled]="!isMyTurn()"
-          (click)="buyCar(car)">
-          <div class="card-header">
-            <h4>{{ car.model }}</h4>
-          </div>
-          <div class="card-body">
-            <p><strong>Year:</strong> {{ car.year }}</p>
-            <p class="price"><strong>Price:</strong> ${{ car.price }}</p>
-          </div>
-          <button
-            class="btn btn-sm btn-primary"
-            [disabled]="!isMyTurn()">
-            Buy
-          </button>
+  <!-- Garage Zone -->
+  <div class="garage-slots-zone">
+    <div class="card-slots"
+         [class.drag-over]="isDraggingCar"
+         (dragover)="onGarageDragOver($event)"
+         (dragleave)="onGarageDragLeave($event)"
+         (drop)="onGarageDrop($event)">
+      <div
+        *ngFor="let slot of garageZone; let i = index"
+        class="card-slot garage-car-slot"
+        [class.tuning-drop-target]="slot && isDraggingTuning"
+        [class.tuning-hover]="slot && isGarageCarHovered(slot.id)"
+        (dragover)="slot ? onGarageCarDragOver($event, slot.id) : null"
+        (dragleave)="slot ? onGarageCarDragLeave($event, slot.id) : null"
+        (drop)="slot ? onGarageCarDrop($event, slot.id) : null"
+      >
+        <app-game-card
+          *ngIf="slot"
+          [card]="slot"
+        ></app-game-card>
+        <div *ngIf="!slot" class="empty-slot">
+          <span class="slot-placeholder"></span>
         </div>
       </div>
-
-      <button
-        class="btn btn-secondary btn-skip"
-        (click)="skipTurn()"
-        [disabled]="!isMyTurn()">
-        Skip Turn
-      </button>
     </div>
+  </div>
 
-    <!-- TUNING SELECTION Phase -->
-    <div *ngIf="isTuningSelection()" class="selection-phase">
-      <h3>Available Tuning (Positive)</h3>
-      <div class="cards-grid">
-        <div
-          class="card tuning-card"
-          *ngFor="let tuning of availableTunings"
-          [class.disabled]="!isMyTurn()"
-          (click)="buyTuning(tuning)">
-          <div class="card-header">
-            <h4>{{ tuning.name }}</h4>
-          </div>
-          <div class="card-body">
-            <p class="price"><strong>Price:</strong> ${{ tuning.price }}</p>
-            <p class="type-badge positive">{{ tuning.type }}</p>
-          </div>
-          <button
-            class="btn btn-sm btn-success"
-            [disabled]="!isMyTurn()">
-            Apply
-          </button>
-        </div>
-      </div>
-
-      <button
-        class="btn btn-secondary btn-skip"
-        (click)="skipTurn()"
-        [disabled]="!isMyTurn()">
-        Skip Tuning
-      </button>
+  <!-- Turn indicator overlay -->
+  <div class="turn-indicator" *ngIf="isStarted()">
+    <div *ngIf="isMyTurn()" class="your-turn-banner">
+      <span class="turn-text">
+        <strong>YOUR TURN!</strong>
+        <span *ngIf="isCarSelection()">Select a car to buy</span>
+        <span *ngIf="isTuningSelection()">Select tuning for your car or skip</span>
+      </span>
+      <button class="btn-skip" (click)="skipTurn()">Skip</button>
     </div>
-
-    <!-- Player info sidebar -->
-    <div class="players-sidebar">
-      <h3>Players</h3>
-      <div class="player-item" *ngFor="let player of roomState.playerQueue; let i = index">
-        <div class="player-info" [class.active]="i === roomState.currentPlayerIndex">
-          <span class="player-name">{{ player.username }}</span>
-          <span *ngIf="player.telegramId === myTelegramId" class="you-badge">(You)</span>
-          <div class="player-stats">
-            <p>Balance: ${{ player.balance }}</p>
-            <p>Cars: {{ player.cars?.length || 0 }}</p>
-          </div>
-        </div>
-      </div>
+    <div *ngIf="!isMyTurn()" class="waiting-turn">
+      <p>Waiting for <strong>{{ getCurrentPlayerName() }}</strong></p>
     </div>
   </div>
 </div>

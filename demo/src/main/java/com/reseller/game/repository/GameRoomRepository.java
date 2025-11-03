@@ -20,6 +20,8 @@ public interface GameRoomRepository extends JpaRepository<GameRoom, Long> {
     @EntityGraph(attributePaths = {
             "players",
             "playerQueue",
+            "playerQueue.cars",
+            "playerQueue.cars.tuning",
             "cars",
             "cars.tuning",
             "tunings",

@@ -28,7 +28,6 @@ public interface  GameRoomMapper {
     @Mapping(target = "cars", source = "cars")
     @Mapping(target = "tunings", source = "tunings")
     @Mapping(target = "startTime", source = "startTime")
-    @Mapping(target = "phase", source = "phase")
     @Mapping(target = "currentPlayerIndex", source = "currentPlayerIndex")
     @Mapping(target = "turnStep", source = "turnStep")
     @Mapping(target = "negativeCards", source = "negativeCards")

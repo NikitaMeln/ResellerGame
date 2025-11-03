@@ -20,7 +20,7 @@ public interface RoomService {
 
     void processBuyCar(GameRoom room, Player player, Car car);
 
-    void processBuyTuning(GameRoom room, Player player, Tuning tuning);
+    void processBuyTuning(GameRoom room, Player player, Tuning tuning, Car car);
 
     void processSkipAction(GameRoom room, Player player);
 

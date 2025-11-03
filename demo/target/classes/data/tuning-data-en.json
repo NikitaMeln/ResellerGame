@@ -1,368 +1,364 @@
 [
   {
-    "name": "Fast Law",
-    "price": 184.32,
+    "name": "Engine knock knock",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "After Old",
-    "price": 157.44,
+    "name": "Bad smell",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "purchaseCounterModifier": 3,
+      "addToRandomModifier": 2,
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "Size Determine",
-    "price": 140.73,
+    "name": "Restoration",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "priceEffect": 114,
-      "purchaseCounterModifier": -3
+      "priceEffect": 500,
+      "addToRandomModifier": -3
     }
   },
   {
-    "name": "Claim Star",
-    "price": 172.98,
+    "name": "Good service history",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": 226,
+      "priceEffect": 300,
       "ignoreClientRequirements": true
     }
   },
   {
-    "name": "Provide See",
-    "price": 108.03,
+    "name": "Worn brakes",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": -237
+      "priceEffect": -200
     }
   },
   {
-    "name": "Television Behavior",
-    "price": 287.36,
+    "name": "Problems with documents",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "banOneRound": true
     }
   },
   {
-    "name": "Television Professional",
-    "price": 276.55,
+    "name": "New wheels",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": -2,
-      "priceEffect": -187
+      "addToRandomModifier": -2,
+      "priceEffect": 400
     }
   },
   {
-    "name": "Public Along",
-    "price": 292.91,
+    "name": "BOSE",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "priceEffect": -195
+      "priceEffect": 300
     }
   },
   {
-    "name": "Wear Democratic",
-    "price": 207.5,
-    "type": "NEGATIVE",
-    "properties": {
-      "purchaseCounterModifier": 3,
-      "banOneRound": true
-    }
-  },
-  {
-    "name": "Yard Away",
-    "price": 294.84,
-    "type": "NEGATIVE",
-    "properties": {
-      "ignoreClientRequirements": true
-    }
-  },
-  {
-    "name": "Front Player",
-    "price": 236.45,
-    "type": "NEGATIVE",
-    "properties": {
-      "deactivateAllTunings": true
-    }
-  },
-  {
-    "name": "Music Organization",
-    "price": 205.95,
-    "type": "POSITIVE",
-    "properties": {
-      "ignoreClientRequirements": true
-    }
-  },
-  {
-    "name": "Serve Miss",
-    "price": 250.41,
-    "type": "NEGATIVE",
-    "properties": {
-      "deactivateAllTunings": true
-    }
-  },
-  {
-    "name": "Type Listen",
-    "price": 199.09,
+    "name": "Oil leak",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "banOneRound": true
     }
   },
   {
-    "name": "Several Find",
-    "price": 102.5,
+    "name": "Rotten Muffler",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": -156
+      "priceEffect": -100
     }
   },
   {
-    "name": "Middle Thus",
-    "price": 209.53,
-    "type": "POSITIVE",
-    "properties": {
-      "priceEffect": -159,
-      "purchaseCounterModifier": 2
-    }
-  },
-  {
-    "name": "Shoulder Color",
-    "price": 201.46,
-    "type": "POSITIVE",
-    "properties": {
-      "purchaseCounterModifier": -2,
-      "priceEffect": 130
-    }
-  },
-  {
-    "name": "Including Sure",
-    "price": 267.11,
-    "type": "NEGATIVE",
-    "properties": {
-      "deactivateAllTunings": true,
-      "purchaseCounterModifier": 3
-    }
-  },
-  {
-    "name": "Hundred Reflect",
-    "price": 239.02,
+    "name": "Drowned",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "Rest Environmental",
-    "price": 160.18,
-    "type": "NEGATIVE",
-    "properties": {
-      "purchaseCounterModifier": 3
-    }
-  },
-  {
-    "name": "To Them",
-    "price": 190.5,
+    "name": "New Subwoofer",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "priceEffect": -220
+      "priceEffect": 400
     }
   },
   {
-    "name": "New Company",
-    "price": 129.35,
+    "name": "Old Ignition",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "ignoreClientRequirements": true
+      "priceEffect": -100
     }
   },
   {
-    "name": "Break Onto",
-    "price": 211.92,
+    "name": "Rotten Body",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": 129
+      "addToRandomModifier": -1
     }
   },
   {
-    "name": "Movie Group",
-    "price": 261.72,
+    "name": "Something is knocking somewhere",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "deactivateAllTunings": true,
-      "banOneRound": true
+      "addToRandomModifier": -1
     }
   },
   {
-    "name": "Prepare Water",
-    "price": 165.96,
-    "type": "NEGATIVE",
-    "properties": {
-      "priceEffect": 202
-    }
-  },
-  {
-    "name": "Third Attack",
-    "price": 206.09,
+    "name": "Partial replacement of consumables",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": 2
+      "priceEffect": 100,
+      "addToRandomModifier": 1
     }
   },
   {
-    "name": "Light Skill",
-    "price": 221.95,
+    "name": "Update Painting",
+    "price": 200,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": 400
+    }
+  },
+  {
+    "name": "Twisted mileage",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "Hour Much",
-    "price": 263.98,
-    "type": "POSITIVE",
-    "properties": {
-      "priceEffect": -57
-    }
-  },
-  {
-    "name": "Assume Direction",
-    "price": 213.88,
+    "name": "Set of additional tires",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": -30,
+      "priceEffect": 100
+    }
+  },
+  {
+    "name": "Gearbox for replacement",
+    "price": 200,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -400
+    }
+  },
+  {
+    "name": "New Subwoofer",
+    "price": 200,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": 400
+    }
+  },
+  {
+    "name": "From under the reseller",
+    "price": 200,
+    "type": "NEGATIVE",
+    "properties": {
+      "addToRandomModifier": -1
+    }
+  },
+  {
+    "name": "Break Chassis",
+    "price": 200,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -300
+    }
+  },
+  {
+    "name": "Old Tires",
+    "price": 200,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -100
+    }
+  },
+  {
+    "name": "New Radiator",
+    "price": 200,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": 500
+    }
+  },
+  {
+    "name": "Tuning Muffler",
+    "price": 200,
+    "type": "POSITIVE",
+    "properties": {
+      "addToRandomModifier": 2
+    }
+  },
+  {
+    "name": "The light bulb burned out",
+    "price": 200,
+    "type": "NEGATIVE",
+    "properties": {
+      "addToRandomModifier": -1
+    }
+  },
+  {
+    "name": "Engine Tune",
+    "price": 200,
+    "type": "POSITIVE",
+    "properties": {
+      "priceEffect": 300
+    }
+  },
+  {
+    "name": "Oil Leak",
+    "price": 200,
+    "type": "NEGATIVE",
+    "properties": {
+      "priceEffect": -300,
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "Life However",
-    "price": 291.37,
+    "name": "Detailing",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "Fine Could",
-    "price": 292.3,
+    "name": "Turbo Boost",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
       "ignoreClientRequirements": true,
-      "purchaseCounterModifier": 2
+      "addToRandomModifier": 2
     }
   },
   {
-    "name": "His Drop",
-    "price": 205.96,
+    "name": "Clean Air Filter",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
       "ignoreClientRequirements": true
     }
   },
   {
-    "name": "Local Various",
-    "price": 255.4,
+    "name": "Sport Exhaust",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": -3,
-      "priceEffect": 26
+      "addToRandomModifier": -3,
+      "priceEffect": 200
     }
   },
   {
-    "name": "There But",
-    "price": 133.71,
+    "name": "Smart ECU",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
       "ignoreClientRequirements": true
     }
   },
   {
-    "name": "Heavy Sure",
-    "price": 271.43,
+    "name": "Lightweight Body",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": 3
+      "addToRandomModifier": 3
     }
   },
   {
-    "name": "Reflect Seem",
-    "price": 272.87,
+    "name": "Brake Failure",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": 223
+      "priceEffect": -400
     }
   },
   {
-    "name": "Civil Near",
-    "price": 122.22,
+    "name": "Lost Papers",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "banOneRound": true
     }
   },
   {
-    "name": "After Resource",
-    "price": 137.94,
+    "name": "Flat Tire",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "To Bag",
-    "price": 272.84,
+    "name": "Dyno Session",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
       "banOneRound": true,
-      "purchaseCounterModifier": -3
+      "addToRandomModifier": -3
     }
   },
   {
-    "name": "Receive Produce",
-    "price": 148.63,
+    "name": "Custom ECU",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": -3,
+      "addToRandomModifier": -3,
       "ignoreClientRequirements": true
     }
   },
   {
-    "name": "Home Sing",
-    "price": 280.95,
+    "name": "Rust Spots",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": -168,
+      "priceEffect": -200,
       "banOneRound": true
     }
   },
   {
-    "name": "Bag Check",
-    "price": 217.64,
+    "name": "Carbon Hood",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": 2,
-      "priceEffect": -228
+      "addToRandomModifier": 2,
+      "priceEffect": 400
     }
   },
   {
-    "name": "Even Say",
-    "price": 273.17,
+    "name": "Transmission Slip",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "purchaseCounterModifier": -2,
-      "priceEffect": -288
+      "addToRandomModifier": -2,
+      "priceEffect": -400
     }
   },
   {
-    "name": "Leave Product",
-    "price": 275.77,
+    "name": "Expired Insurance",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "deactivateAllTunings": true,
@@ -370,34 +366,34 @@
     }
   },
   {
-    "name": "Eye Those",
-    "price": 237.57,
+    "name": "Dirty Injectors",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
       "ignoreClientRequirements": true,
-      "priceEffect": 73
+      "priceEffect": -300
     }
   },
   {
-    "name": "Rock Home",
-    "price": 143.87,
+    "name": "Racing Setup",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": 3,
+      "addToRandomModifier": 3,
       "deactivateAllTunings": true
     }
   },
   {
-    "name": "Certainly Law",
-    "price": 220.95,
+    "name": "Check Engine",
+    "price": 200,
     "type": "NEGATIVE",
     "properties": {
-      "priceEffect": -177
+      "priceEffect": -500
     }
   },
   {
-    "name": "Develop Instead",
-    "price": 291.22,
+    "name": "Stage 2 Upgrade",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
       "ignoreClientRequirements": true,
@@ -405,19 +401,19 @@
     }
   },
   {
-    "name": "Together Real",
-    "price": 100.43,
+    "name": "Alignment Fix",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": -3
+      "addToRandomModifier": -3
     }
   },
   {
-    "name": "Item Value",
-    "price": 269.53,
+    "name": "Ceramic Brakes",
+    "price": 200,
     "type": "POSITIVE",
     "properties": {
-      "purchaseCounterModifier": 3
+      "addToRandomModifier": 3
     }
   }
 ]

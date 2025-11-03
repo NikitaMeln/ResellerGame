@@ -1,330 +1,439 @@
 .game-room-container {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.game-header {
+  padding: 10px;
+  height: 100vh;
+  max-height: 100vh;
+  background: #fbf7f0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background: #2a2a2a;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
 
-  h1 {
-    margin: 0;
-    color: #fff;
+// Main game board layout
+.game-board-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+// Zone styling (Clients and Garage)
+.zone {
+  padding: 10px 0;
+
+  .zone-label {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: rgb(0, 0, 0);
+    margin-bottom: 10px;
+    font-family: 'Passion One';
+    text-transform: uppercase;
+    letter-spacing: 2px;
   }
 
-  .header-info {
+  .card-slots {
     display: flex;
-    gap: 15px;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
-    span {
-      padding: 8px 16px;
-      border-radius: 4px;
-      background: #3a3a3a;
-      color: #fff;
+  .card-slot {
+    position: relative;
+    width: 150px;
+    height: 180px;
+    transition: transform 0.2s ease, z-index 0s;
+    flex-shrink: 0;
+    z-index: 1;
+
+    &:hover {
+      transform: scale(1.2);
+      z-index: 10;
     }
 
-    .phase-badge {
-      background: #4CAF50;
+    &.clickable {
+      cursor: pointer;
+    }
+  }
+
+  .empty-slot {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .slot-placeholder {
+      font-size: 32px;
+      opacity: 0.4;
     }
   }
 }
 
-.waiting-room {
-  text-align: center;
-  padding: 40px;
-  background: #f5f5f5;
-  border-radius: 8px;
+.clients-zone {
+  overflow: visible;
+  padding: 5px 0 45px 0;
 
-  h2 {
-    margin-bottom: 20px;
+  .card-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 150px);
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: visible;
   }
 
-  .players-list {
-    margin: 30px 0;
-    display: flex;
-    flex-direction: column;
+  .card-slot {
+    grid-row: 1;
+
+    &:nth-child(1) { grid-column: 1; z-index: 1; }
+    &:nth-child(2) { grid-column: 2; z-index: 1; }
+    &:nth-child(3) { grid-column: 3; z-index: 1; }
+    &:nth-child(4) { grid-column: 1; grid-row: 1; z-index: 2; margin-top: 50px; }
+    &:nth-child(5) { grid-column: 2; grid-row: 1; z-index: 2; margin-top: 50px; }
+    &:nth-child(6) { grid-column: 3; grid-row: 1; z-index: 2; margin-top: 50px; }
+
+    &:hover {
+      z-index: 100 !important;
+    }
+  }
+}
+
+.market-zone {
+  overflow: visible;
+  padding: 8px 0 40px 0;
+
+  .card-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 150px);
+    justify-content: center;
     gap: 10px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
+    position: relative;
+    overflow: visible;
+  }
 
-    .player-item {
-      padding: 15px;
-      background: white;
-      border-radius: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+  .card-slot {
+    grid-row: 1;
 
-      .you-badge {
-        background: #4CAF50;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.8em;
+    &:nth-child(1) { grid-column: 1; z-index: 1; }
+    &:nth-child(2) { grid-column: 2; z-index: 1; }
+    &:nth-child(3) { grid-column: 3; z-index: 1; }
+    &:nth-child(4) { grid-column: 1; grid-row: 1; z-index: 2; margin-top: 50px; }
+    &:nth-child(5) { grid-column: 2; grid-row: 1; z-index: 2; margin-top: 50px; }
+    &:nth-child(6) { grid-column: 3; grid-row: 1; z-index: 2; margin-top: 50px; }
+
+    &:hover {
+      z-index: 100 !important;
+    }
+  }
+}
+
+.garage-slots-zone {
+  padding: 5px 0;
+
+  .card-slots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 15px;
+    border-radius: 12px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+    &.drag-over {
+      background-color: rgba(102, 126, 234, 0.15);
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.6),
+                  0 0 20px rgba(102, 126, 234, 0.3);
+      animation: pulse-glow 1s ease-in-out infinite;
+
+      .empty-slot {
+        border-color: rgba(102, 126, 234, 0.9);
+        border-width: 3px;
+        border-style: solid;
+        background: rgba(102, 126, 234, 0.2);
+        animation: slot-pulse 0.8s ease-in-out infinite;
       }
     }
   }
 
-  .btn-start {
-    margin-top: 20px;
-    padding: 12px 40px;
-    font-size: 1.1em;
+  .card-slot {
+    position: relative;
+    width: 150px;
+    height: 240px;
+    transition: transform 0.2s ease, z-index 0s;
+    flex-shrink: 0;
+    z-index: 1;
+
+    &:hover {
+      transform: scale(1.2);
+      z-index: 10;
+    }
+  }
+
+  .empty-slot {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.6);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .slot-placeholder {
+      font-size: 32px;
+      opacity: 0.4;
+    }
   }
 }
 
-.game-content {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 20px;
+.tuning-zone {
+  padding: 10px 0px;
+  overflow: visible;
+
+  .card-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 150px);
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: visible;
+  }
+
+  .card-slot, .tuning-card-slot {
+    width: 150px;
+    height: 50px;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 1;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      z-index: 10;
+      transform: scale(1.1);
+    }
+  }
 }
 
+// Garage Separator
+.garage-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 0;
+  position: relative;
+  margin: 2px 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 3px;
+    background: #000000;
+  }
+
+  &::before {
+    margin-right: 10px;
+  }
+
+  &::after {
+    margin-left: 10px;
+  }
+
+  .garage-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: #000000;
+    font-family: 'Passion One';
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 0 8px;
+  }
+}
+
+// Turn indicator overlay
 .turn-indicator {
-  grid-column: 1 / -1;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  pointer-events: none;
 
   .your-turn-banner {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
+    color: rgb(0, 0, 0);
+    padding: 45px 30px;
+    animation: pulse 2s ease-in-out infinite;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
 
-    h2 {
-      margin: 0 0 10px 0;
+    .turn-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+
+      strong {
+        font-size: 16px;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      span {
+        opacity: 0.9;
+      }
     }
 
-    p {
-      margin: 0;
-      font-size: 1.1em;
+    .btn-skip {
+      padding: 2px 10px;
+      background: rgb(177, 177, 177);
+      border: 2px solid rgb(0, 0, 0);
+      border-radius: 6px;
+      color: rgb(0, 0, 0);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
     }
   }
 
   .waiting-turn {
-    background: #f0f0f0;
-    padding: 15px;
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     text-align: center;
 
     p {
       margin: 0;
-      color: #666;
-    }
-  }
-}
+      font-size: 16px;
 
-.selection-phase {
-  h3 {
-    margin-bottom: 20px;
-  }
-
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-
-    .card {
-      background: white;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      padding: 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-
-      &:hover:not(.disabled) {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        border-color: #4CAF50;
-      }
-
-      &.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .card-header {
-        margin-bottom: 10px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
-
-        h4 {
-          margin: 0;
-          color: #333;
-        }
-      }
-
-      .card-body {
-        margin-bottom: 15px;
-
-        p {
-          margin: 5px 0;
-          color: #666;
-        }
-
-        .price {
-          font-size: 1.2em;
-          color: #4CAF50;
-          font-weight: bold;
-        }
-
-        .type-badge {
-          display: inline-block;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 0.85em;
-          font-weight: bold;
-
-          &.positive {
-            background: #4CAF50;
-            color: white;
-          }
-        }
-      }
-
-      .btn {
-        width: 100%;
-      }
-    }
-  }
-
-  .btn-skip {
-    display: block;
-    margin: 20px auto 0;
-    padding: 10px 30px;
-  }
-}
-
-.players-sidebar {
-  background: #f5f5f5;
-  padding: 20px;
-  border-radius: 8px;
-  height: fit-content;
-
-  h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-  }
-
-  .player-item {
-    margin-bottom: 15px;
-
-    .player-info {
-      padding: 15px;
-      background: white;
-      border-radius: 4px;
-      border-left: 4px solid transparent;
-
-      &.active {
-        border-left-color: #4CAF50;
-        background: #e8f5e9;
-      }
-
-      .player-name {
-        font-weight: bold;
-        display: block;
-        margin-bottom: 5px;
-      }
-
-      .you-badge {
-        background: #2196F3;
-        color: white;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 0.75em;
-        margin-left: 5px;
-      }
-
-      .player-stats {
-        margin-top: 10px;
-        font-size: 0.9em;
-        color: #666;
-
-        p {
-          margin: 3px 0;
-        }
+      strong {
+        color: #667eea;
+        font-weight: 700;
       }
     }
   }
 }
 
+// Loading state
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  height: 100vh;
+  background: #fbf7f0;
 
   .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #667eea;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
 
   p {
     margin-top: 20px;
+    font-size: 18px;
     color: #666;
   }
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+// Animations
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: all 0.3s ease;
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.6),
+                0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(102, 126, 234, 0.8),
+                0 0 30px rgba(102, 126, 234, 0.5);
+  }
+}
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+@keyframes slot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    border-color: rgba(102, 126, 234, 0.9);
+  }
+  50% {
+    transform: scale(1.05);
+    border-color: rgba(102, 126, 234, 1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .game-room-container {
+    padding: 10px;
   }
 
-  &.btn-primary {
-    background: #4CAF50;
-    color: white;
+  .zone {
+    padding: 15px;
 
-    &:hover:not(:disabled) {
-      background: #45a049;
+    .zone-label {
+      font-size: 14px;
+    }
+
+    .card-slots {
+      gap: 10px;
     }
   }
 
-  &.btn-secondary {
-    background: #757575;
-    color: white;
+  .turn-indicator {
+    top: 70px;
 
-    &:hover:not(:disabled) {
-      background: #616161;
+    .your-turn-banner h2 {
+      font-size: 20px;
     }
-  }
 
-  &.btn-success {
-    background: #4CAF50;
-    color: white;
-
-    &:hover:not(:disabled) {
-      background: #45a049;
+    .your-turn-banner p {
+      font-size: 12px;
     }
-  }
-
-  &.btn-sm {
-    padding: 6px 12px;
-    font-size: 0.9em;
   }
 }
