@@ -1,7 +1,5 @@
 package com.reseller.game.service.impl;
 
-import java.util.ArrayList;
-
 import org.springframework.stereotype.Service;
 
 import com.reseller.game.model.entity.Player;
@@ -25,11 +23,6 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
-    public Player findByTelegramIdWithCars(String telegramId) {
-        return playerRepository.findByTelegramIdWithCars(telegramId).orElseThrow();
-    }
-
-    @Override
     @Transactional
     public Player createOrGetPlayer(String telegramId, String username, String language) {
         return playerRepository.findByTelegramId(telegramId)
@@ -38,12 +31,10 @@ public class PlayerServiceImpl implements PlayerService {
                     newPlayer.setTelegramId(telegramId);
                     newPlayer.setUsername(username);
                     newPlayer.setLanguage(language);
-                    newPlayer.setBalance(2300); // Starting balance
-                    newPlayer.setGarageSize(3);
                     newPlayer.setTotalProfit(0);
                     newPlayer.setSoldCars(0);
-                    newPlayer.setCars(new ArrayList<>());
                     return playerRepository.save(newPlayer);
                 });
     }
+
 }

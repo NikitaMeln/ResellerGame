@@ -4,6 +4,8 @@ import com.reseller.game.model.entity.Tuning;
 import com.reseller.game.model.entity.types.TuningType;
 import com.reseller.game.repository.TuningRepository;
 import com.reseller.game.service.TuningService;
+import com.reseller.game.util.DataInitializationUtil;
+import com.reseller.game.util.RandomSelectionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,8 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -24,14 +24,7 @@ public class TuningServiceImpl implements TuningService {
     @Override
     @Transactional
     public void initTuning(List<Tuning> tunings) {
-        try {
-            tuningRepository.deleteAllInBatch();
-            tuningRepository.saveAll(tunings);
-        } catch (Exception e) {
-            log.error("Error initializing tunings table", e);
-            // TODO: Implement customs exception
-            throw e;
-        }
+        DataInitializationUtil.initializeData(tuningRepository, tunings, "tunings", true, true);
     }
 
     @Override
@@ -44,11 +37,7 @@ public class TuningServiceImpl implements TuningService {
     @Transactional(readOnly = true)
     public Optional<Tuning> getRandomTuning(TuningType type) {
         List<Tuning> filtered = tuningRepository.findByType(type);
-        if (filtered.isEmpty()) {
-            return Optional.empty();
-        }
-        int idx = ThreadLocalRandom.current().nextInt(filtered.size());
-        return Optional.of(filtered.get(idx));
+        return RandomSelectionUtil.selectRandom(filtered);
     }
 
     @Transactional(readOnly = true)

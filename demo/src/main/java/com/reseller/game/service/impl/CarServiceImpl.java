@@ -1,56 +1,38 @@
 package com.reseller.game.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import com.reseller.game.model.entity.Car;
-import com.reseller.game.model.entity.Tuning;
-import com.reseller.game.repository.CarRepository;
 
+import com.reseller.game.model.entity.Car;
+import com.reseller.game.repository.CarRepository;
+import com.reseller.game.service.CarService;
+import com.reseller.game.util.DataInitializationUtil;
+import com.reseller.game.util.RandomSelectionUtil;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
-public class CarServiceImpl {
+@RequiredArgsConstructor
+public class CarServiceImpl implements CarService{
 
     private final CarRepository carRepository;
 
-     public CarServiceImpl(CarRepository carRepository) {
-        this.carRepository = carRepository;
-    }
-
+    @Override
     public void initCars(List<Car> cars) {
-        try {
-            carRepository.deleteAllInBatch();
-            carRepository.saveAll(cars);
-        } catch (Exception e) {
-            System.err.println("Error initializing cars: " + e.getMessage());
-        }
+        DataInitializationUtil.initializeData(carRepository, cars, "cars", true);
     }
 
+    @Override
     public List<Car> getAllCars() {
         return carRepository.findAll();
     }
 
+    @Override
     public List<Car> getRandomCars(List<Car> cars, int count) {
-        List<Car> randomCars = new ArrayList<>();
-        if (cars == null || cars.isEmpty()) {
-            return null;
-        }
-
-        for (int i = 0; i < count; i++) {
-            int randomIndex = (int) (Math.random() * cars.size());
-            if (cars.get(randomIndex) == null) {
-                randomCars.add(cars.get(randomIndex));
-            }
-        }
-        return randomCars;
+        return RandomSelectionUtil.selectMultipleRandom(cars, count);
     }
 
-    public Car setTuning(Car car, Tuning tuning) {
-        if (car != null) {
-        List<Tuning> existedTuning = car.getTuning();
-            existedTuning.add(tuning);
-            car.setTuning(existedTuning);
-        }
-        return car;
-    }
 }

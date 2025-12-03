@@ -2,7 +2,6 @@ package com.reseller.game.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -11,15 +10,13 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.reseller.game.model.entity.Car;
-import com.reseller.game.model.entity.Client;
+import com.reseller.game.mapper.GameSessionMapper;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
-import com.reseller.game.model.entity.Tuning;
 import com.reseller.game.model.entity.types.RoomState;
-import com.reseller.game.model.entity.types.TuningType;
 import com.reseller.game.model.entity.types.TurnStep;
 import com.reseller.game.repository.GameRoomRepository;
+import com.reseller.game.service.GameSessionService;
 import com.reseller.game.service.RoomService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -34,20 +31,14 @@ public class RoomServiceImpl implements RoomService {
     private final static Integer TOTAL_TO_SOLD = 5;
     private final static Integer TOTAL_PROFIT = 10000;
     private final static Integer MAX_PLAYERS = 5;
-    private final static Integer MIN_PLAYERS = 1; // For testing, can be 2 for production
-
-
+    private final static Integer MIN_PLAYERS = 1; // For prod, must be 2
+    
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private final Random random = new Random();
-
     private final GameRoomRepository gameRoomRepository;
-    private final com.reseller.game.repository.PlayerRepository playerRepository;
-    private final CarServiceImpl carServiceImpl;
-    private final TuningServiceImpl tuningServiceImpl;
-    private final ClientServiceImpl clientServiceImpl;
     private final SimpMessagingTemplate ws;
-    private final com.reseller.game.mapper.GameRoomMapper gameRoomMapper;
+    private final GameSessionMapper gameSessionMapper;
     private final TransactionTemplate transactionTemplate;
+    private final GameSessionService gameSessionService;
 
     @Override
     @Transactional
@@ -60,14 +51,6 @@ public class RoomServiceImpl implements RoomService {
         room.setPlayers(new java.util.ArrayList<>());
         room.setPlayerQueue(new java.util.ArrayList<>());
 
-        // Load all game data immediately so players can see cars while waiting
-        List<Car> availableCars = carServiceImpl.getAllCars();
-        List<Tuning> availableTunings = tuningServiceImpl.getAllTunings();
-        List<Client> clients = clientServiceImpl.getAllClients();
-        room.setCars(availableCars);
-        room.setTunings(availableTunings);
-        room.setClients(clients);
-
         gameRoomRepository.save(room);
 
         scheduleStart(room);
@@ -78,12 +61,16 @@ public class RoomServiceImpl implements RoomService {
     private void scheduleStart(GameRoom room) {
         scheduler.schedule(() -> {
             transactionTemplate.execute(status -> {
-                // Reload room to get latest player count with all associations eagerly loaded
-                GameRoom managedRoom = gameRoomRepository.findById(room.getId()).orElse(null);
-                if (managedRoom != null && managedRoom.getPlayers().size() >= MIN_PLAYERS) {
-                    initializeRoom(managedRoom);
-                } else {
-                    log.warn("Not enough players in room {}, closing room", room.getId());
+                try {
+                    // Reload room to get latest player count with all associations eagerly loaded
+                    GameRoom managedRoom = reloadRoom(room.getId());
+                    if (managedRoom.getPlayers().size() >= MIN_PLAYERS) {
+                        initializeRoom(managedRoom);
+                    } else {
+                        log.warn("Not enough players in room {}, closing room", room.getId());
+                    }
+                } catch (EntityNotFoundException e) {
+                    log.warn("Room {} not found during scheduled start", room.getId());
                 }
                 return null;
             });
@@ -93,23 +80,19 @@ public class RoomServiceImpl implements RoomService {
     @Transactional
     private void initializeRoom(GameRoom room) {
         try {
-            // Set game to STARTED state
+            // Set game to STARTED state in DB
             room.setState(RoomState.STARTED);
-            room.setCurrentPlayerIndex(0);
-            room.setTurnStep(TurnStep.CAR_SELECTION);
-
-            // Initialize negative cards (debuff cards from tuning with NEGATIVE type)
-            List<Tuning> negativeCards = tuningServiceImpl.getTuningsByType(TuningType.NEGATIVE);
-            room.setNegativeCards(negativeCards);
-
             gameRoomRepository.save(room);
 
-            // Reload room with all collections for WebSocket message
-            GameRoom updatedRoom = gameRoomRepository.findById(room.getId()).orElseThrow();
+            // Create in-memory game session with all game data
+            com.reseller.game.session.GameSession session = gameSessionService.createSession(room);
 
-            // Notify all players in room that game has started
-            ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".state",
-                    gameRoomMapper.toDto(updatedRoom));
+            // Reload room with all collections for WebSocket message
+            GameRoom updatedRoom = reloadRoom(room.getId());
+
+            // Notify all players in room that game has started (with full game session state)
+            com.reseller.game.dto.RoomStateDto roomStateDto = gameSessionMapper.toDto(session, updatedRoom);
+            ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".state", roomStateDto);
 
             // Notify each player individually that game has started (for lobby navigation)
             for (Player p : updatedRoom.getPlayers()) {
@@ -120,12 +103,12 @@ public class RoomServiceImpl implements RoomService {
 
             log.info("Game started for room {}", updatedRoom.getId());
 
-            // Notify current player about their turn
-            Player currentPlayer = getCurrentPlayer(updatedRoom);
+            // Notify current player about their turn (using GameSession state)
+            com.reseller.game.session.PlayerGameState currentPlayer = session.getCurrentPlayer();
             if (currentPlayer != null) {
                 ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".turn",
                         java.util.Map.of("currentPlayer", currentPlayer.getTelegramId(),
-                                "turnStep", updatedRoom.getTurnStep()));
+                                "turnStep", session.getTurnStep()));
             }
         } catch (Exception e) {
             log.error("initializeRoom - ERROR initializing room {}: {}", room.getId(), e.getMessage(), e);
@@ -133,35 +116,8 @@ public class RoomServiceImpl implements RoomService {
         }
     }
 
-    private Tuning getRandomTuning(List<Tuning> tunings, TuningType type) {
-        List<Tuning> filtered = tunings.stream()
-            .filter(t -> t.getType() == type)
-            .toList();
-        return filtered.get(random.nextInt(filtered.size()));
-    }
-
-    private boolean checkWinCondition(Player player) {
-        return player.getSoldCars() >= TOTAL_TO_SOLD ||
-               player.getTotalProfit() >= TOTAL_PROFIT;
-    }
-
-    private void finishGame(GameRoom room) {
-        room.setState(RoomState.RESULT);
-        calculateStats(room);
-        System.out.println("Game finished. Winner: ");
-    }
-
-    private void calculateStats(GameRoom room) {
-    
-        Integer totalProfit = 0;
-        int totalSales = 0;
-
-        for (Player p : room.getPlayers()) {
-            totalProfit = totalProfit + (p.getTotalProfit());
-            totalSales += p.getSoldCars();
-        }
-
-    }
+    // NOTE: Old helper methods removed (getRandomTuning, checkWinCondition, finishGame, calculateStats)
+    // Game logic is now in GameSessionManager
 
     @Transactional
     @Override
@@ -180,8 +136,7 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public void addPlayer(GameRoom room, Player player) {
         // Reload room to ensure players collection is initialized
-        GameRoom managedRoom = gameRoomRepository.findById(room.getId())
-                .orElseThrow(() -> new RuntimeException("Room not found"));
+        GameRoom managedRoom = reloadRoom(room.getId());
 
         List<Player> players = managedRoom.getPlayers();
         log.info("addPlayer - Room {} current players: {}", managedRoom.getId(), players.size());
@@ -218,159 +173,75 @@ public class RoomServiceImpl implements RoomService {
     @Transactional
     @Override
     public void startGame(GameRoom room) {
-        // Load all game data if not already loaded
-        if (room.getCars() == null || room.getCars().isEmpty()) {
-            List<Car> availableCars = carServiceImpl.getAllCars();
-            room.setCars(availableCars);
-        }
+        // Create in-memory game session with all game data
+        gameSessionService.createSession(room);
 
-        if (room.getTunings() == null || room.getTunings().isEmpty()) {
-            List<Tuning> availableTunings = tuningServiceImpl.getAllTunings();
-            room.setTunings(availableTunings);
-        }
-
-        if (room.getClients() == null || room.getClients().isEmpty()) {
-            List<Client> clients = clientServiceImpl.getAllClients();
-            room.setClients(clients);
-        }
-
+        // Update room state in DB
         room.setState(RoomState.STARTED);
-        room.setCurrentPlayerIndex(0);
-        room.setTurnStep(TurnStep.CAR_SELECTION);
-
-        // Initialize negative cards (debuff cards from tuning with NEGATIVE type)
-        List<Tuning> negativeCards = tuningServiceImpl.getTuningsByType(TuningType.NEGATIVE);
-        room.setNegativeCards(negativeCards);
-
         gameRoomRepository.save(room);
+
+        log.info("Game started for room {} with {} players", room.getId(), room.getPlayerQueue().size());
     }
 
     @Transactional
     @Override
-    public void processBuyCar(GameRoom room, Player player, Car car) {
-        if (!isCurrentPlayer(room, player)) {
-            throw new IllegalStateException("Not this player's turn");
-        }
+    public void processBuyCar(Long roomId, String telegramId, Long carId) {
+        // Use GameSessionService for in-memory game state
+        gameSessionService.buyCar(roomId, telegramId, carId);
 
-        if (room.getTurnStep() != TurnStep.CAR_SELECTION) {
-            throw new IllegalStateException("Cannot buy car at this step");
-        }
+        // Update turn state in session
+        com.reseller.game.session.GameSession session = gameSessionService.getSession(roomId);
+        session.setTurnStep(TurnStep.TUNING_SELECTION);
 
-        // Add car to player's garage
-        player.getCars().add(car);
-        
-        // Remove car from available cars in market
-        boolean removed = room.getCars().removeIf(c -> c.getId().equals(car.getId()));
-
-        // Deduct balance
-        player.setBalance(player.getBalance() - car.getPrice().intValue());
-
-        // Assign random negative card (debuff)
-        Tuning negativeCard = getRandomTuning(room.getNegativeCards(), TuningType.NEGATIVE);
-        player.setCurrentNegativeCard(negativeCard);
-
-        // Save player changes
-        playerRepository.save(player);
-
-        // Move to tuning selection
-        room.setTurnStep(TurnStep.TUNING_SELECTION);
-
-        gameRoomRepository.save(room);
+        log.info("Player {} bought car {} in room {}", telegramId, carId, roomId);
     }
 
     @Transactional
     @Override
-    public void processBuyTuning(GameRoom room, Player player, Tuning tuning, Car car) {
-        if (!isCurrentPlayer(room, player)) {
-            throw new IllegalStateException("Not this player's turn");
-        }
-
-        if (room.getTurnStep() != TurnStep.TUNING_SELECTION) {
-            throw new IllegalStateException("Cannot buy tuning at this step");
-        }
-
-        // Verify player owns this car
-        List<Car> playerCars = player.getCars();
-        if (playerCars.isEmpty()) {
-            throw new IllegalStateException("Player has no cars");
-        }
-
-        boolean ownsThisCar = playerCars.stream()
-                .anyMatch(c -> c.getId().equals(car.getId()));
-        if (!ownsThisCar) {
-            throw new IllegalStateException("Player does not own this car");
-        }
-
-        // Add tuning to the specified car
-        carServiceImpl.setTuning(car, tuning);
-
-        // Deduct balance
-        player.setBalance(player.getBalance() - tuning.getPrice().intValue());
+    public void processBuyTuning(Long roomId, String telegramId, Long tuningId, String carInstanceId) {
+        // Use GameSessionService for in-memory game state
+        gameSessionService.buyTuning(roomId, telegramId, tuningId, carInstanceId);
 
         // Move to next player
-        moveToNextPlayer(room);
+        com.reseller.game.session.GameSession session = gameSessionService.getSession(roomId);
+        session.moveToNextPlayer();
 
-        gameRoomRepository.save(room);
+        log.info("Player {} bought tuning {} for car {} in room {}",
+                telegramId, tuningId, carInstanceId, roomId);
     }
 
     @Transactional
     @Override
-    public void processSkipAction(GameRoom room, Player player) {
-        if (!isCurrentPlayer(room, player)) {
+    public void processSkipAction(Long roomId, String telegramId) {
+        com.reseller.game.session.GameSession session = gameSessionService.getSession(roomId);
+
+        // Verify it's this player's turn
+        if (!session.isCurrentPlayer(telegramId)) {
             throw new IllegalStateException("Not this player's turn");
         }
 
-        if (room.getTurnStep() == TurnStep.CAR_SELECTION) {
-            // Skip entire turn - move to next player
-            moveToNextPlayer(room);
-        } else if (room.getTurnStep() == TurnStep.TUNING_SELECTION) {
-            // Skip only tuning - move to next player
-            moveToNextPlayer(room);
-        }
+        // Skip - move to next player regardless of turn step
+        session.moveToNextPlayer();
 
-        gameRoomRepository.save(room);
+        log.info("Player {} skipped turn in room {}", telegramId, roomId);
     }
 
     @Override
-    public Player getCurrentPlayer(GameRoom room) {
-        if (room.getPlayerQueue() == null || room.getPlayerQueue().isEmpty()) {
-            return null;
-        }
-
-        Integer index = room.getCurrentPlayerIndex();
-        if (index == null || index >= room.getPlayerQueue().size()) {
-            return null;
-        }
-
-        return room.getPlayerQueue().get(index);
+    public com.reseller.game.session.GameSession getGameSession(Long roomId) {
+        return gameSessionService.getSession(roomId);
     }
 
-    private boolean isCurrentPlayer(GameRoom room, Player player) {
-        Player current = getCurrentPlayer(room);
-        return current != null && current.getTelegramId().equals(player.getTelegramId());
-    }
-
-    private void moveToNextPlayer(GameRoom room) {
-        Integer currentIndex = room.getCurrentPlayerIndex();
-        int playerCount = room.getPlayerQueue().size();
-
-        // Move to next player
-        int nextIndex = (currentIndex + 1) % playerCount;
-        room.setCurrentPlayerIndex(nextIndex);
-
-        // If we completed a full round (all players finished buying phase)
-        if (nextIndex == 0) {
-            // Transition to selling phase
-            room.setTurnStep(TurnStep.CHOICE_CLIENT_TO_SELL);
-
-            // Reverse the player order for selling phase
-            List<Player> reversedQueue = new java.util.ArrayList<>(room.getPlayerQueue());
-            java.util.Collections.reverse(reversedQueue);
-            room.setPlayerQueue(reversedQueue);
-        } else {
-            // Continue buying phase - reset to car selection for next player
-            room.setTurnStep(TurnStep.CAR_SELECTION);
-        }
+    /**
+     * Reloads a room from the database to ensure all collections are initialized.
+     * This is necessary in JPA/Hibernate to avoid LazyInitializationException.
+     *
+     * @param roomId the ID of the room to reload
+     * @return the reloaded room with all collections eagerly loaded
+     * @throws EntityNotFoundException if the room is not found
+     */
+    private GameRoom reloadRoom(Long roomId) {
+        return gameRoomRepository.findById(roomId)
+                .orElseThrow(() -> new EntityNotFoundException("Room with ID %d not found".formatted(roomId)));
     }
 }
 

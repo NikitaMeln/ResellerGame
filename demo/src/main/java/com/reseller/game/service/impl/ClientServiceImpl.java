@@ -4,33 +4,31 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import com.reseller.game.model.entity.Client;
 import com.reseller.game.repository.ClientRepository;
+import com.reseller.game.service.ClientService;
+import com.reseller.game.util.DataInitializationUtil;
+import com.reseller.game.util.RandomSelectionUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
-public class ClientServiceImpl {
+@RequiredArgsConstructor
+public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
 
-    public ClientServiceImpl(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
-    }
-
+    @Override
     public void initClients(List<Client> clients) {
-        try {
-            clientRepository.saveAll(clients);
-        } catch (Exception e) {
-            System.err.println("Error initializing clients: " + e.getMessage());
-        }
+        DataInitializationUtil.initializeData(clientRepository, clients, "clients");
     }
 
+    @Override
     public List<Client> getAllClients() {
         return clientRepository.findAll();
     }
 
+    @Override
     public Client getRandomClient(List<Client> clients) {
-        if (clients == null || clients.isEmpty()) {
-            return null;
-        }
-        int randomIndex = (int) (Math.random() * clients.size());
-        return clients.get(randomIndex);
+        return RandomSelectionUtil.selectRandom(clients).orElse(null);
     }
 }

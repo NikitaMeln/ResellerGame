@@ -142,7 +142,9 @@ export class WebSocketService {
   }
 
   buyTuning(roomId: number, telegramId: string, tuningId: number, carId: number): void {
+    console.log('🔵 WebSocketService.buyTuning called:', { roomId, telegramId, tuningId, carId });
     this.publish('/app/game.buyTuning', { roomId, telegramId, tuningId, carId });
+    console.log('🔵 Message published to /app/game.buyTuning');
   }
 
   skipAction(roomId: number, telegramId: string): void {

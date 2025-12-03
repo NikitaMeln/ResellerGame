@@ -1,10 +1,10 @@
 package com.reseller.game.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -17,4 +17,5 @@ public class PlayerDto {
     private Integer totalProfit;
     private Integer soldCars;
     private List<CarDto> cars;
+    private TuningDto currentNegativeCard;
 }

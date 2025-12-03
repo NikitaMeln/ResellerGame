@@ -61,9 +61,6 @@
 
             <p>price: {{ carCard.stats.price }}₴</p>
             <p>year: {{ carCard.stats.year }}</p>
-            <ng-container *ngIf="carCard.stats.tuning && carCard.stats.tuning.length > 0">
-              <p class="tuning-count">tunings: {{ carCard.stats.tuning.length }}</p>
-            </ng-container>
           </ng-container>
         </ng-container>
 

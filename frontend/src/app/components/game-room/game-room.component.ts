@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, PLATFORM_ID, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -72,7 +72,8 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private websocketService: WebSocketService,
-    private playerService: PlayerService
+    private playerService: PlayerService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -379,27 +380,50 @@ export class GameRoomComponent implements OnInit, OnDestroy {
       // Update garage zone with player's cars
       if (currentPlayer.cars && currentPlayer.cars.length > 0) {
         console.log('Updating garage with cars:', currentPlayer.cars);
-        this.garageZone = currentPlayer.cars.map((car: any, index: number) => ({
-          id: car.id?.toString() || `garage-car-${index}`,
-          type: 'car' as const,
-          title: car.model || 'Unknown',
-          description: `Year: ${car.year || 'N/A'}`,
-          stats: {
-            brand: car.model?.split(' ')[0] || 'Unknown',
-            model: car.model || 'Unknown',
-            year: parseInt(car.year) || 2020,
-            price: car.price || 0,
-            tuning: car.tuning || []
-          },
-          isRevealed: true,
-          isDraggable: false
-        }));
+
+        this.garageZone = currentPlayer.cars.map((car: any, index: number) => {
+          const carTunings = car.tuning || [];
+          console.log(`Car ${car.id} has ${carTunings.length} tunings:`, carTunings);
+
+          return {
+            id: car.id?.toString() || `garage-car-${index}`,
+            type: 'car' as const,
+            title: car.model || 'Unknown',
+            description: `Year: ${car.year || 'N/A'}`,
+            stats: {
+              brand: car.model?.split(' ')[0] || 'Unknown',
+              model: car.model || 'Unknown',
+              year: parseInt(car.year) || 2020,
+              price: car.price || 0,
+              tuning: carTunings
+            },
+            isRevealed: true,
+            isDraggable: false
+          };
+        });
 
         // Fill remaining slots with null
         while (this.garageZone.length < this.playerState.garageSlots) {
           this.garageZone.push(null);
         }
         console.log('Updated garageZone:', this.garageZone);
+
+        // Log tunings specifically
+        this.garageZone.forEach((slot, idx) => {
+          if (slot && slot.stats.tuning) {
+            console.log(`Garage slot ${idx}: ${slot.title} has ${slot.stats.tuning.length} tunings`, slot.stats.tuning);
+            console.log(`🎨 UI Debug - Checking if tuning badges should render for slot ${idx}:`);
+            console.log(`  - slot exists: ${!!slot}`);
+            console.log(`  - slot.stats exists: ${!!slot.stats}`);
+            console.log(`  - slot.stats.tuning exists: ${!!slot.stats.tuning}`);
+            console.log(`  - tuning array length: ${slot.stats.tuning.length}`);
+            console.log(`  - tuning array:`, JSON.stringify(slot.stats.tuning));
+          }
+        });
+
+        // Force change detection to update view
+        this.cdr.detectChanges();
+        console.log('🔄 Change detection triggered for garage zone update');
       } else {
         console.log('No cars, filling with empty slots');
         // No cars - fill with empty slots
@@ -585,8 +609,17 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     }
   }
 
+  private isProcessingTuningDrop = false;
+
   onGarageCarDrop(event: DragEvent, garageCarId: string): void {
     event.preventDefault();
+
+    // Prevent duplicate drops
+    if (this.isProcessingTuningDrop) {
+      console.warn('⚠️ Drop already being processed, ignoring duplicate');
+      return;
+    }
+
     this.isDraggingTuning = false;
     this.hoveredGarageCarId = null;
 
@@ -597,13 +630,20 @@ export class GameRoomComponent implements OnInit, OnDestroy {
 
     const tuningId = event.dataTransfer?.getData('cardId') || this.draggedTuningId;
     if (tuningId && garageCarId) {
-      console.log(`Buying tuning ${tuningId} for car ${garageCarId}`);
+      this.isProcessingTuningDrop = true;
+      console.log(`🟢 Buying tuning ${tuningId} for car ${garageCarId}`);
       this.websocketService.buyTuning(
         parseInt(this.roomId),
         this.myTelegramId,
         parseInt(tuningId),
         parseInt(garageCarId)
       );
+
+      // Reset the flag after a short delay to allow the next drop
+      setTimeout(() => {
+        this.isProcessingTuningDrop = false;
+        console.log('🟢 Ready for next tuning drop');
+      }, 1000);
     }
 
     this.draggedTuningId = null;

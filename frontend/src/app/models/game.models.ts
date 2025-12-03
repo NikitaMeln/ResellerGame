@@ -17,11 +17,12 @@ export interface Car {
 }
 
 export interface Tuning {
-  id: string;
+  id: number;
   name: string;
-  description: string;
+  description?: string;
   price: number;
-  category: string;
+  type: string; // POSITIVE or NEGATIVE
+  properties?: any; // Additional tuning properties
 }
 
 export interface Client {

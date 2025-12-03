@@ -13,7 +13,4 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
 
     @Query("SELECT p FROM Player p WHERE p.telegramId = :telegramId")
     Optional<Player> findByTelegramId(@Param("telegramId") String telegramId);
-
-    @Query("SELECT p FROM Player p LEFT JOIN FETCH p.cars WHERE p.telegramId = :telegramId")
-    Optional<Player> findByTelegramIdWithCars(@Param("telegramId") String telegramId);
 }

@@ -89,10 +89,20 @@
         (dragleave)="slot ? onGarageCarDragLeave($event, slot.id) : null"
         (drop)="slot ? onGarageCarDrop($event, slot.id) : null"
       >
+        <!-- Tunings applied to this car -->
+        <div *ngIf="slot && slot.stats.tuning && slot.stats.tuning.length > 0" class="car-tunings">
+          <div *ngFor="let tuning of slot.stats.tuning" class="tuning-badge">
+            <span class="tuning-name">{{ tuning.name }}</span>
+            <span class="tuning-price">{{ tuning.price }}₴</span>
+          </div>
+        </div>
+
+        <!-- Car card -->
         <app-game-card
           *ngIf="slot"
           [card]="slot"
         ></app-game-card>
+
         <div *ngIf="!slot" class="empty-slot">
           <span class="slot-placeholder"></span>
         </div>

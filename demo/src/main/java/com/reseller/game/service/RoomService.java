@@ -1,10 +1,9 @@
 package com.reseller.game.service;
 
-import com.reseller.game.model.entity.Car;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
-import com.reseller.game.model.entity.Tuning;
 import com.reseller.game.model.entity.types.RoomState;
+import com.reseller.game.session.GameSession;
 
 public interface RoomService {
 
@@ -18,11 +17,11 @@ public interface RoomService {
 
     void startGame(GameRoom room);
 
-    void processBuyCar(GameRoom room, Player player, Car car);
+    void processBuyCar(Long roomId, String telegramId, Long carId);
 
-    void processBuyTuning(GameRoom room, Player player, Tuning tuning, Car car);
+    void processBuyTuning(Long roomId, String telegramId, Long tuningId, String carInstanceId);
 
-    void processSkipAction(GameRoom room, Player player);
+    void processSkipAction(Long roomId, String telegramId);
 
-    Player getCurrentPlayer(GameRoom room);
+    GameSession getGameSession(Long roomId);
 }

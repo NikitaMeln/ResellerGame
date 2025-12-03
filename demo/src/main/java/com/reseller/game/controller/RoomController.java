@@ -12,16 +12,14 @@ import com.reseller.game.dto.req.BuyCarRequest;
 import com.reseller.game.dto.req.BuyTuningRequest;
 import com.reseller.game.dto.req.JoinRoomRequest;
 import com.reseller.game.dto.req.SkipActionRequest;
-import com.reseller.game.mapper.GameRoomMapper;
-import com.reseller.game.model.entity.Car;
+import com.reseller.game.mapper.GameSessionMapper;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
-import com.reseller.game.model.entity.Tuning;
 import com.reseller.game.model.entity.types.RoomState;
-import com.reseller.game.repository.CarRepository;
-import com.reseller.game.repository.TuningRepository;
 import com.reseller.game.service.PlayerService;
 import com.reseller.game.service.RoomService;
+import com.reseller.game.session.GameSession;
+import com.reseller.game.session.PlayerGameState;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,12 +31,10 @@ public class RoomController {
 
     private final RoomService roomService;
     private final PlayerService playerService;
-    private final GameRoomMapper gameRoomMapper;
+    private final GameSessionMapper gameSessionMapper;
     private final SimpMessagingTemplate ws;
-    private final CarRepository carRepository;
-    private final TuningRepository tuningRepository;
 
-    @MessageMapping("/room.join")        // /app/room.join
+    @MessageMapping("/room.join")
     @org.springframework.transaction.annotation.Transactional
     public void join(JoinRoomRequest req, Principal principal) {
         // Create or get player
@@ -52,100 +48,71 @@ public class RoomController {
 
         roomService.addPlayer(room, player);
 
-        // Reload room to ensure all collections are initialized
         GameRoom updatedRoom = roomService.getRoomById(room.getId());
 
-        // Notify all players in room about state update
-        ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".state",
-                gameRoomMapper.toDto(updatedRoom));
+        RoomStateDto dto = gameSessionMapper.toDtoFromRoom(updatedRoom);
 
-        // Send room assignment to the player who just joined
-        // Using topic instead of user queue since we don't have authentication
+        ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".state", dto);
+
         ws.convertAndSend(
                 "/topic/player." + req.getTelegramId() + ".room-assigned",
                 Map.of("roomId", updatedRoom.getId(), "roomState", updatedRoom.getState().name())
         );
     }
 
-    @MessageMapping("/room.start")       // /app/room.start
+    @MessageMapping("/room.start")
     public void startGame(JoinRoomRequest req) {
         GameRoom room = roomService.getRoomById(Long.parseLong(req.getRoomId()));
         roomService.startGame(room);
 
-        // Notify all players that game started
-        ws.convertAndSend("/topic/room." + room.getId() + ".state",
-                gameRoomMapper.toDto(room));
-
-        // Notify current player about their turn
-        Player currentPlayer = roomService.getCurrentPlayer(room);
-        ws.convertAndSend("/topic/room." + room.getId() + ".turn",
-                Map.of("currentPlayer", currentPlayer.getTelegramId(),
-                        "turnStep", room.getTurnStep()));
+        broadcastGameState(room.getId());
     }
 
-    @MessageMapping("/game.buyCar")      // /app/game.buyCar
+    @MessageMapping("/game.buyCar")
     public void buyCar(BuyCarRequest req) {
+        log.info("buyCar - RoomId: {}, TelegramId: {}, CarId: {}",
+                req.getRoomId(), req.getTelegramId(), req.getCarId());
         
-        GameRoom room = roomService.getRoomById(req.getRoomId());
-       
-        Player player = playerService.findByTelegramIdWithCars(req.getTelegramId());
-        Car car = carRepository.findById(req.getCarId())
-                .orElseThrow(() -> new IllegalArgumentException("Car not found"));
+        roomService.processBuyCar(req.getRoomId(), req.getTelegramId(), req.getCarId());
 
-        roomService.processBuyCar(room, player, car);
-
-        // Reload room to get updated player data with cars
-        GameRoom updatedRoom = roomService.getRoomById(req.getRoomId());
-
-        // Notify all players about room state update
-        RoomStateDto dto = gameRoomMapper.toDto(updatedRoom);
-        ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".state", dto);
-
-        // Notify current player about their turn step
-        ws.convertAndSend("/topic/room." + updatedRoom.getId() + ".turn",
-                Map.of("currentPlayer", player.getTelegramId(),
-                        "turnStep", updatedRoom.getTurnStep(),
-                        "negativeCard", player.getCurrentNegativeCard()));
+        broadcastGameState(req.getRoomId());
     }
 
-    @MessageMapping("/game.buyTuning")   // /app/game.buyTuning
+    @MessageMapping("/game.buyTuning")
     public void buyTuning(BuyTuningRequest req) {
-        GameRoom room = roomService.getRoomById(req.getRoomId());
-        Player player = playerService.findByTelegramId(req.getTelegramId());
-        Tuning tuning = tuningRepository.findById(req.getTuningId())
-                .orElseThrow(() -> new IllegalArgumentException("Tuning not found"));
-        Car car = carRepository.findById(req.getCarId())
-                .orElseThrow(() -> new IllegalArgumentException("Car not found"));
+        log.info("buyTuning - RoomId: {}, TelegramId: {}, TuningId: {}, CarInstanceId: {}",
+                req.getRoomId(), req.getTelegramId(), req.getTuningId(), req.getCarId());
 
-        roomService.processBuyTuning(room, player, tuning, car);
+        roomService.processBuyTuning(req.getRoomId(), req.getTelegramId(),
+                req.getTuningId(), req.getCarId());
 
-        // Notify all players about room state update
-        ws.convertAndSend("/topic/room." + room.getId() + ".state",
-                gameRoomMapper.toDto(room));
+        broadcastGameState(req.getRoomId());
 
-        // Notify next player about their turn
-        Player nextPlayer = roomService.getCurrentPlayer(room);
-        ws.convertAndSend("/topic/room." + room.getId() + ".turn",
-                Map.of("currentPlayer", nextPlayer.getTelegramId(),
-                        "turnStep", room.getTurnStep()));
+        log.info("buyTuning completed");
     }
 
-    @MessageMapping("/game.skip")        // /app/game.skip
+    @MessageMapping("/game.skip")
     public void skipAction(SkipActionRequest req) {
-        GameRoom room = roomService.getRoomById(req.getRoomId());
-        Player player = playerService.findByTelegramId(req.getTelegramId());
+        log.info("skipAction - RoomId: {}, TelegramId: {}", req.getRoomId(), req.getTelegramId());
 
-        roomService.processSkipAction(room, player);
+        roomService.processSkipAction(req.getRoomId(), req.getTelegramId());
 
-        // Notify all players about room state update
-        ws.convertAndSend("/topic/room." + room.getId() + ".state",
-                gameRoomMapper.toDto(room));
+        broadcastGameState(req.getRoomId());
+    }
 
-        // Notify next player about their turn
-        Player nextPlayer = roomService.getCurrentPlayer(room);
-        ws.convertAndSend("/topic/room." + room.getId() + ".turn",
-                Map.of("currentPlayer", nextPlayer.getTelegramId(),
-                        "turnStep", room.getTurnStep()));
+    private void broadcastGameState(Long roomId) {
+        GameSession session = roomService.getGameSession(roomId);
+        GameRoom room = roomService.getRoomById(roomId);
+
+        RoomStateDto dto = gameSessionMapper.toDto(session, room);
+        ws.convertAndSend("/topic/room." + room.getId() + ".state", dto);
+
+        PlayerGameState currentPlayer = session.getCurrentPlayer();
+        if (currentPlayer != null) {
+            ws.convertAndSend("/topic/room." + room.getId() + ".turn",
+                    Map.of("currentPlayer", currentPlayer.getTelegramId(),
+                            "turnStep", session.getTurnStep()));
+        }
     }
 }
 

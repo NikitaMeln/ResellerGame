@@ -31,9 +31,14 @@ public class InitializeStorage {
     private void init() {
         try {
             // Check if data already exists - load only if tables are empty
-            boolean carsExist = carServiceImpl.getAllCars() != null && !carServiceImpl.getAllCars().isEmpty();
-            boolean tuningsExist = tuningServiceImpl.getAllTunings() != null && !tuningServiceImpl.getAllTunings().isEmpty();
-            boolean clientsExist = clientServiceImpl.getAllClients() != null && !clientServiceImpl.getAllClients().isEmpty();
+            // Call each service method once and store the result
+            List<Car> existingCars = carServiceImpl.getAllCars();
+            List<Tuning> existingTunings = tuningServiceImpl.getAllTunings();
+            List<Client> existingClients = clientServiceImpl.getAllClients();
+
+            boolean carsExist = existingCars != null && !existingCars.isEmpty();
+            boolean tuningsExist = existingTunings != null && !existingTunings.isEmpty();
+            boolean clientsExist = existingClients != null && !existingClients.isEmpty();
 
             if (carsExist && tuningsExist && clientsExist) {
                 log.info("Data already exists in database, skipping initialization");

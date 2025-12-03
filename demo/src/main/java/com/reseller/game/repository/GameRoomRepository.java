@@ -1,6 +1,7 @@
 package com.reseller.game.repository;
 
-import com.reseller.game.model.entity.types.RoomState;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,8 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import com.reseller.game.model.entity.GameRoom;
-
-import java.util.Optional;
+import com.reseller.game.model.entity.types.RoomState;
 
 @Repository
 public interface GameRoomRepository extends JpaRepository<GameRoom, Long> {
@@ -19,15 +19,9 @@ public interface GameRoomRepository extends JpaRepository<GameRoom, Long> {
 
     @EntityGraph(attributePaths = {
             "players",
-            "playerQueue",
-            "playerQueue.cars",
-            "playerQueue.cars.tuning",
-            "cars",
-            "cars.tuning",
-            "tunings",
-            "clients",
-            "negativeCards"
+            "playerQueue"
     })
     @NonNull
+    @Override
     Optional<GameRoom> findById(@NonNull Long id);
 }

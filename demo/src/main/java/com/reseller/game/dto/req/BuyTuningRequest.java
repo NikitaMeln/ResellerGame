@@ -9,5 +9,5 @@ public class BuyTuningRequest {
     private Long roomId;
     private String telegramId;
     private Long tuningId;
-    private Long carId; // ID of the car to apply tuning to
+    private String carId;
 }
