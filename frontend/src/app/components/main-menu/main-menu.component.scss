@@ -28,6 +28,34 @@
   text-align: center;
 }
 
+.username-section {
+  margin-bottom: 30px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.username-input {
+  width: 100%;
+  padding: 15px 20px;
+  font-size: 16px;
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: white;
+  text-align: center;
+  font-weight: 500;
+
+  &::placeholder {
+    color: #aaa;
+  }
+
+  &:focus {
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+}
+
 .buttons-section {
   display: flex;
   flex-direction: column;
@@ -58,6 +86,13 @@
   font-size: 20px;
   font-weight: bold;
   letter-spacing: 1px;
+  transition: all 0.3s ease;
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(50%);
+  }
 }
 
 /* Rules Container */

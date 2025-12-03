@@ -17,11 +17,12 @@ export interface Car {
 }
 
 export interface Tuning {
-  id: string;
+  id: number;
   name: string;
-  description: string;
+  description?: string;
   price: number;
-  category: string;
+  type: string; // POSITIVE or NEGATIVE
+  properties?: any; // Additional tuning properties
 }
 
 export interface Client {
@@ -112,6 +113,7 @@ export interface CarCard extends GameCard {
     model: string;
     year: number;
     price: number;
+    tuning?: Tuning[]; // Optional array of tunings applied to this car
   };
 }
 
@@ -121,6 +123,7 @@ export interface ClientCard extends GameCard {
   stats: {
     budget: number;
     modifier?: number;
+    year?: string | number;
     requirements?: string[];
   };
 }

@@ -2,10 +2,7 @@ package com.reseller.game.model.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import com.reseller.game.model.entity.types.Phase;
 import com.reseller.game.model.entity.types.RoomState;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,10 +29,12 @@ public class GameRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    // Players who joined this room (for history)
     @ManyToMany
     private List<Player> players;
 
+    // Turn order for players
     @ManyToMany
     @JoinTable(
             name = "room_player_queue",
@@ -45,18 +44,11 @@ public class GameRoom {
     @OrderColumn(name = "queue_order")
     private List<Player> playerQueue;
 
-    @ManyToMany
-    private List<Client> clients;
-    
-    @ManyToMany
-    private List<Car> cars;
-    
-    @ManyToMany
-    private List<Tuning> tunings;
-
     private LocalDateTime startTime;
 
+    // Room state: PENDING, PLAYING, FINISHED
     private RoomState state;
 
-    private Phase phase;
+    // NOTE: Game state (cars, clients, tunings, currentPlayerIndex, turnStep, etc.)
+    // is stored in-memory in GameSession, not in database
 }

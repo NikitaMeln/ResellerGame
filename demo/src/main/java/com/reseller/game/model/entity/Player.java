@@ -1,7 +1,5 @@
 package com.reseller.game.model.entity;
 
-import java.util.List;
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,12 +7,13 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = "cars")
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 public class Player {
 
     @Id
+    @EqualsAndHashCode.Include
     private String telegramId;
 
     @Column(nullable = false)
@@ -22,20 +21,10 @@ public class Player {
 
     @Column(nullable = false)
     private String language;
-    
-    private Integer garageSize;
 
-    private Integer balance;
-
-    @ManyToMany
-    @JoinTable(
-            name = "player_cars",
-            joinColumns = @JoinColumn(name = "player_id"),
-            inverseJoinColumns = @JoinColumn(name = "car_id")
-    )
-    private List<Car> cars;
-
+    // Career statistics (updated after each game)
     private Integer totalProfit;
-
     private Integer soldCars;
+
+    // NOTE: In-game state (balance, cars, garage) is stored in-memory in PlayerGameState
 }

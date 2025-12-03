@@ -18,6 +18,7 @@ export class GameCardComponent {
 
   // For template access to CardType enum
   CardType = CardType;
+  isDragging: boolean = false;
 
   onCardClick(): void {
     if (!this.card.isDraggable || this.isInStack) {
@@ -26,14 +27,26 @@ export class GameCardComponent {
   }
 
   onDragStart(event: DragEvent): void {
+    console.log('GameCard onDragStart:', {
+      cardId: this.card.id,
+      cardType: this.card.type,
+      isDraggable: this.card.isDraggable,
+      isInStack: this.isInStack
+    });
+
     if (this.card.isDraggable && !this.isInStack) {
       event.dataTransfer!.effectAllowed = 'move';
       event.dataTransfer!.setData('cardId', this.card.id);
+      this.isDragging = true;
       this.cardDragStart.emit(this.card);
+      console.log('✅ Drag started for card:', this.card.id);
+    } else {
+      console.warn('❌ Drag blocked - isDraggable:', this.card.isDraggable, 'isInStack:', this.isInStack);
     }
   }
 
   onDragEnd(event: DragEvent): void {
+    this.isDragging = false;
     this.cardDragEnd.emit(this.card);
   }
 

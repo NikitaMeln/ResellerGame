@@ -14,13 +14,5 @@ export const routes: Routes = [
     path: 'room/:id',
     loadComponent: () => import('./components/game-room/game-room.component').then(m => m.GameRoomComponent)
   },
-  {
-    path: 'demo',
-    loadComponent: () => import('./components/game-board-demo/game-board-demo.component').then(m => m.GameBoardDemoComponent)
-  },
-  {
-    path: 'first-round',
-    loadComponent: () => import('./components/first-round-board/first-round-board.component').then(m => m.FirstRoundBoardComponent)
-  },
   { path: '**', redirectTo: '/menu' }
 ];

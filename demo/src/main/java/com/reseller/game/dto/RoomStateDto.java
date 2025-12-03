@@ -1,31 +1,26 @@
 package com.reseller.game.dto;
 
-import com.reseller.game.model.entity.*;
-import com.reseller.game.model.entity.types.Phase;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
+import com.reseller.game.model.entity.types.TurnStep;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RoomStateDto {
-
     private String roomState;
-
-    private List<Client> clients;
-
-    private List<Player> playerQueue;
-
-    private List<Car> cars;
-
-    private List<Tuning> tunings;
-
+    private List<ClientDto> clients;
+    private List<PlayerDto> playerQueue;
+    private List<CarDto> cars;
+    private List<TuningDto> tunings;
     private LocalDateTime startTime;
-
-    private Phase phase;
+    private Integer currentPlayerIndex;
+    private TurnStep turnStep;
+    private List<TuningDto> negativeCards;
 
 }
