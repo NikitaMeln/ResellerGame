@@ -204,6 +204,45 @@ public class GameSessionServiceImpl implements GameSessionService {
         log.info("Player {} applied tuning {} to car {}", telegramId, tuningId, carInstanceId);
     }
 
+    @Override
+    public void processBuyCarAction(Long roomId, String telegramId, Long carId) {
+        // Buy car (atomic operation)
+        buyCar(roomId, telegramId, carId);
+
+        // Advance turn step to tuning selection
+        GameSession session = getSession(roomId);
+        session.setTurnStep(TurnStep.TUNING_SELECTION);
+
+        log.info("Player {} completed car purchase in room {}, advanced to TUNING_SELECTION", telegramId, roomId);
+    }
+
+    @Override
+    public void processBuyTuningAction(Long roomId, String telegramId, Long tuningId, String carInstanceId) {
+        // Buy and apply tuning (atomic operation)
+        buyTuning(roomId, telegramId, tuningId, carInstanceId);
+
+        // Move to next player
+        GameSession session = getSession(roomId);
+        session.moveToNextPlayer();
+
+        log.info("Player {} completed tuning purchase in room {}, advanced to next player", telegramId, roomId);
+    }
+
+    @Override
+    public void processSkipAction(Long roomId, String telegramId) {
+        GameSession session = getSession(roomId);
+
+        // Verify it's this player's turn
+        if (!session.isCurrentPlayer(telegramId)) {
+            throw new IllegalStateException("Not this player's turn");
+        }
+
+        // Skip - move to next player regardless of turn step
+        session.moveToNextPlayer();
+
+        log.info("Player {} skipped turn in room {}, advanced to next player", telegramId, roomId);
+    }
+
     /**
      * Validates that a player has sufficient balance for a purchase.
      * Throws InsufficientBalanceException if the player cannot afford the price.

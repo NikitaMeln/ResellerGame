@@ -16,6 +16,7 @@ import com.reseller.game.mapper.GameSessionMapper;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
 import com.reseller.game.model.entity.types.RoomState;
+import com.reseller.game.service.GameSessionService;
 import com.reseller.game.service.PlayerService;
 import com.reseller.game.service.RoomService;
 import com.reseller.game.session.GameSession;
@@ -24,12 +25,21 @@ import com.reseller.game.session.PlayerGameState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * WebSocket controller for game room operations.
+ *
+ * Architecture:
+ * - Uses RoomService for persistent room management (DB operations)
+ * - Uses GameSessionService for in-memory game logic (session operations)
+ * - Broadcasts game state updates via WebSocket after each action
+ */
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 public class RoomController {
 
     private final RoomService roomService;
+    private final GameSessionService gameSessionService;
     private final PlayerService playerService;
     private final GameSessionMapper gameSessionMapper;
     private final SimpMessagingTemplate ws;
@@ -72,8 +82,8 @@ public class RoomController {
     public void buyCar(BuyCarRequest req) {
         log.info("buyCar - RoomId: {}, TelegramId: {}, CarId: {}",
                 req.getRoomId(), req.getTelegramId(), req.getCarId());
-        
-        roomService.processBuyCar(req.getRoomId(), req.getTelegramId(), req.getCarId());
+
+        gameSessionService.processBuyCarAction(req.getRoomId(), req.getTelegramId(), req.getCarId());
 
         broadcastGameState(req.getRoomId());
     }
@@ -83,7 +93,7 @@ public class RoomController {
         log.info("buyTuning - RoomId: {}, TelegramId: {}, TuningId: {}, CarInstanceId: {}",
                 req.getRoomId(), req.getTelegramId(), req.getTuningId(), req.getCarId());
 
-        roomService.processBuyTuning(req.getRoomId(), req.getTelegramId(),
+        gameSessionService.processBuyTuningAction(req.getRoomId(), req.getTelegramId(),
                 req.getTuningId(), req.getCarId());
 
         broadcastGameState(req.getRoomId());
@@ -95,13 +105,13 @@ public class RoomController {
     public void skipAction(SkipActionRequest req) {
         log.info("skipAction - RoomId: {}, TelegramId: {}", req.getRoomId(), req.getTelegramId());
 
-        roomService.processSkipAction(req.getRoomId(), req.getTelegramId());
+        gameSessionService.processSkipAction(req.getRoomId(), req.getTelegramId());
 
         broadcastGameState(req.getRoomId());
     }
 
     private void broadcastGameState(Long roomId) {
-        GameSession session = roomService.getGameSession(roomId);
+        GameSession session = gameSessionService.getSession(roomId);
         GameRoom room = roomService.getRoomById(roomId);
 
         RoomStateDto dto = gameSessionMapper.toDto(session, room);

@@ -29,6 +29,6 @@ Thumbs.db
 *.log
 logs/
 
-# Claude AI
 .claude/
 CLAUDE.md
+demo/SWAGGER_GUIDE.md

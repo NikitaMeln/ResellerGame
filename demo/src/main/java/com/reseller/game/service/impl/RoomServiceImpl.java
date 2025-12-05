@@ -14,7 +14,6 @@ import com.reseller.game.mapper.GameSessionMapper;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
 import com.reseller.game.model.entity.types.RoomState;
-import com.reseller.game.model.entity.types.TurnStep;
 import com.reseller.game.repository.GameRoomRepository;
 import com.reseller.game.service.GameSessionService;
 import com.reseller.game.service.RoomService;
@@ -183,53 +182,6 @@ public class RoomServiceImpl implements RoomService {
         log.info("Game started for room {} with {} players", room.getId(), room.getPlayerQueue().size());
     }
 
-    @Transactional
-    @Override
-    public void processBuyCar(Long roomId, String telegramId, Long carId) {
-        // Use GameSessionService for in-memory game state
-        gameSessionService.buyCar(roomId, telegramId, carId);
-
-        // Update turn state in session
-        com.reseller.game.session.GameSession session = gameSessionService.getSession(roomId);
-        session.setTurnStep(TurnStep.TUNING_SELECTION);
-
-        log.info("Player {} bought car {} in room {}", telegramId, carId, roomId);
-    }
-
-    @Transactional
-    @Override
-    public void processBuyTuning(Long roomId, String telegramId, Long tuningId, String carInstanceId) {
-        // Use GameSessionService for in-memory game state
-        gameSessionService.buyTuning(roomId, telegramId, tuningId, carInstanceId);
-
-        // Move to next player
-        com.reseller.game.session.GameSession session = gameSessionService.getSession(roomId);
-        session.moveToNextPlayer();
-
-        log.info("Player {} bought tuning {} for car {} in room {}",
-                telegramId, tuningId, carInstanceId, roomId);
-    }
-
-    @Transactional
-    @Override
-    public void processSkipAction(Long roomId, String telegramId) {
-        com.reseller.game.session.GameSession session = gameSessionService.getSession(roomId);
-
-        // Verify it's this player's turn
-        if (!session.isCurrentPlayer(telegramId)) {
-            throw new IllegalStateException("Not this player's turn");
-        }
-
-        // Skip - move to next player regardless of turn step
-        session.moveToNextPlayer();
-
-        log.info("Player {} skipped turn in room {}", telegramId, roomId);
-    }
-
-    @Override
-    public com.reseller.game.session.GameSession getGameSession(Long roomId) {
-        return gameSessionService.getSession(roomId);
-    }
 
     /**
      * Reloads a room from the database to ensure all collections are initialized.
