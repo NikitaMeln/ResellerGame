@@ -32,3 +32,4 @@ logs/
 .claude/
 CLAUDE.md
 demo/SWAGGER_GUIDE.md
+.idea/

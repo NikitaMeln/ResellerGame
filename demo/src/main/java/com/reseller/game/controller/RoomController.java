@@ -12,6 +12,7 @@ import com.reseller.game.dto.req.BuyCarRequest;
 import com.reseller.game.dto.req.BuyTuningRequest;
 import com.reseller.game.dto.req.JoinRoomRequest;
 import com.reseller.game.dto.req.SkipActionRequest;
+import com.reseller.game.exception.GameException;
 import com.reseller.game.mapper.GameSessionMapper;
 import com.reseller.game.model.entity.GameRoom;
 import com.reseller.game.model.entity.Player;
@@ -83,9 +84,8 @@ public class RoomController {
         log.info("buyCar - RoomId: {}, TelegramId: {}, CarId: {}",
                 req.getRoomId(), req.getTelegramId(), req.getCarId());
 
-        gameSessionService.processBuyCarAction(req.getRoomId(), req.getTelegramId(), req.getCarId());
-
-        broadcastGameState(req.getRoomId());
+        runGameAction(req.getRoomId(), req.getTelegramId(), () ->
+                gameSessionService.processBuyCarAction(req.getRoomId(), req.getTelegramId(), req.getCarId()));
     }
 
     @MessageMapping("/game.buyTuning")
@@ -93,21 +93,35 @@ public class RoomController {
         log.info("buyTuning - RoomId: {}, TelegramId: {}, TuningId: {}, CarInstanceId: {}",
                 req.getRoomId(), req.getTelegramId(), req.getTuningId(), req.getCarId());
 
-        gameSessionService.processBuyTuningAction(req.getRoomId(), req.getTelegramId(),
-                req.getTuningId(), req.getCarId());
-
-        broadcastGameState(req.getRoomId());
-
-        log.info("buyTuning completed");
+        runGameAction(req.getRoomId(), req.getTelegramId(), () ->
+                gameSessionService.processBuyTuningAction(req.getRoomId(), req.getTelegramId(),
+                        req.getTuningId(), req.getCarId()));
     }
 
     @MessageMapping("/game.skip")
     public void skipAction(SkipActionRequest req) {
         log.info("skipAction - RoomId: {}, TelegramId: {}", req.getRoomId(), req.getTelegramId());
 
-        gameSessionService.processSkipAction(req.getRoomId(), req.getTelegramId());
+        runGameAction(req.getRoomId(), req.getTelegramId(), () ->
+                gameSessionService.processSkipAction(req.getRoomId(), req.getTelegramId()));
+    }
 
-        broadcastGameState(req.getRoomId());
+    /**
+     * Run an in-session game action. Expected rule violations (GameException) are sent
+     * back to the player who triggered the action via /topic/player.{id}.error, and the
+     * room state is NOT re-broadcast (no state change happened). Successful actions
+     * broadcast the new state to everyone.
+     */
+    private void runGameAction(Long roomId, String telegramId, Runnable action) {
+        try {
+            action.run();
+        } catch (GameException e) {
+            log.info("Game rule violation for player {} in room {}: {}", telegramId, roomId, e.getMessage());
+            ws.convertAndSend("/topic/player." + telegramId + ".error",
+                    Map.of("message", e.getMessage(), "type", e.getClass().getSimpleName()));
+            return;
+        }
+        broadcastGameState(roomId);
     }
 
     private void broadcastGameState(Long roomId) {

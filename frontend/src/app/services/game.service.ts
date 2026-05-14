@@ -26,9 +26,7 @@ export class GameService {
   constructor(
     private http: HttpClient,
     private webSocketService: WebSocketService
-  ) {
-    this.loadGameData();
-  }
+  ) {}
 
   // Observable getters
   getCurrentRoom(): Observable<GameRoom | null> {
@@ -49,21 +47,6 @@ export class GameService {
 
   getAvailableTunings(): Observable<Tuning[]> {
     return this.availableTunings.asObservable();
-  }
-
-  // Load initial game data
-  private loadGameData(): void {
-    this.http.get<Car[]>('/api/cars').subscribe(cars => {
-      this.availableCars.next(cars);
-    });
-
-    this.http.get<Client[]>('/api/clients').subscribe(clients => {
-      this.availableClients.next(clients);
-    });
-
-    this.http.get<Tuning[]>('/api/tunings').subscribe(tunings => {
-      this.availableTunings.next(tunings);
-    });
   }
 
   // Room management
@@ -92,6 +75,10 @@ export class GameService {
 
   getRooms(): Observable<GameRoom[]> {
     return this.http.get<GameRoom[]>('/api/rooms');
+  }
+
+  getRoomState(roomId: string | number): Observable<any> {
+    return this.http.get<any>(`http://localhost:8080/api/game/room/${roomId}`);
   }
 
   // Game actions

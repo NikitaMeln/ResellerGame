@@ -1,6 +1,6 @@
 package com.reseller.game.exception;
 
-public class TuningNotFoundException extends RuntimeException {
+public class TuningNotFoundException extends GameException {
     public TuningNotFoundException(String message) {
         super(message);
     }
