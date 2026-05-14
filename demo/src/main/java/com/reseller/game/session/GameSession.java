@@ -106,10 +106,11 @@ public class GameSession {
     }
 
     /**
-     * Move to next player
+     * Move to next player and reset turn step to the start of the buying phase.
      */
     public void moveToNextPlayer() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        turnStep = TurnStep.CAR_SELECTION;
     }
 
     /**

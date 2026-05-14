@@ -1,6 +1,6 @@
 package com.reseller.game.exception;
 
-public class InsufficientBalanceException extends RuntimeException {
+public class InsufficientBalanceException extends GameException {
     public InsufficientBalanceException(String message) {
         super(message);
     }

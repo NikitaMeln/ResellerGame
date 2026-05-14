@@ -106,6 +106,7 @@ public class GameSessionMapper {
     private CarDto mapCarInstance(CarInstance carInstance) {
         CarDto dto = new CarDto();
         dto.setId(carInstance.getOriginalCarId());
+        dto.setInstanceId(carInstance.getInstanceId());
         dto.setModel(carInstance.getModel());
         dto.setYear(carInstance.getYear());
         dto.setPrice(carInstance.getBasePrice());

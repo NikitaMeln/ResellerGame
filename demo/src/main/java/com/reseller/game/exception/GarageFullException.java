@@ -1,6 +1,6 @@
 package com.reseller.game.exception;
 
-public class GarageFullException extends RuntimeException {
+public class GarageFullException extends GameException {
     public GarageFullException(String message) {
         super(message);
     }

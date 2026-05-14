@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { WebSocketService } from '../../services/websocket.service';
 import { PlayerService } from '../../services/player.service';
+import { GameService } from '../../services/game.service';
 import { GameHeaderComponent } from '../game-header/game-header.component';
 import { GameCardComponent } from '../game-card/game-card.component';
 import {
@@ -73,6 +74,7 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     private router: Router,
     private websocketService: WebSocketService,
     private playerService: PlayerService,
+    private gameService: GameService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -92,6 +94,9 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     // Initialize player state
     this.initializePlayerState();
 
+    // Make sure WebSocket is connected (in case we entered the room directly, bypassing lobby)
+    this.websocketService.connect();
+
     if (this.isBrowser) {
       const navigation = this.router.getCurrentNavigation();
       const initialRoomState = navigation?.extras?.state?.['initialRoomState'] ||
@@ -102,6 +107,19 @@ export class GameRoomComponent implements OnInit, OnDestroy {
         this.roomState = initialRoomState;
         this.initializeAvailablePools();
         this.updateZones();
+      } else if (this.isBrowser) {
+        this.gameService.getRoomState(roomId).subscribe({
+          next: (state) => {
+            if (!this.roomState) {
+              console.log('REST snapshot loaded for room', roomId);
+              this.roomState = state;
+              this.initializeAvailablePools();
+              this.updateZones();
+              this.cdr.detectChanges();
+            }
+          },
+          error: (err) => console.error('Failed to load room state via REST:', err)
+        });
       }
     }
 
@@ -386,7 +404,7 @@ export class GameRoomComponent implements OnInit, OnDestroy {
           console.log(`Car ${car.id} has ${carTunings.length} tunings:`, carTunings);
 
           return {
-            id: car.id?.toString() || `garage-car-${index}`,
+            id: car.instanceId || car.id?.toString() || `garage-car-${index}`,
             type: 'car' as const,
             title: car.model || 'Unknown',
             description: `Year: ${car.year || 'N/A'}`,
@@ -441,15 +459,22 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   }
 
   isMyTurn(): boolean {
-    return this.turnInfo?.currentPlayer === this.myTelegramId;
+    if (this.turnInfo?.currentPlayer) {
+      return this.turnInfo.currentPlayer === this.myTelegramId;
+    }
+    const idx = this.roomState?.currentPlayerIndex ?? -1;
+    const queue = this.roomState?.playerQueue || [];
+    return queue[idx]?.telegramId === this.myTelegramId;
   }
 
   isCarSelection(): boolean {
-    return this.turnInfo?.turnStep === 'CAR_SELECTION';
+    const step = this.turnInfo?.turnStep ?? this.roomState?.turnStep;
+    return step === 'CAR_SELECTION';
   }
 
   isTuningSelection(): boolean {
-    return this.turnInfo?.turnStep === 'TUNING_SELECTION';
+    const step = this.turnInfo?.turnStep ?? this.roomState?.turnStep;
+    return step === 'TUNING_SELECTION';
   }
 
   canStartGame(): boolean {
@@ -487,10 +512,11 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   }
 
   getCurrentPlayerName(): string {
-    if (!this.roomState || !this.turnInfo) return '';
-    const currentPlayer = this.roomState.playerQueue?.find(
-      p => p.telegramId === this.turnInfo?.currentPlayer
-    );
+    if (!this.roomState) return '';
+    const targetId = this.turnInfo?.currentPlayer
+      ?? this.roomState.playerQueue?.[this.roomState.currentPlayerIndex ?? -1]?.telegramId;
+    if (!targetId) return '';
+    const currentPlayer = this.roomState.playerQueue?.find(p => p.telegramId === targetId);
     return currentPlayer?.username || '';
   }
 
@@ -636,7 +662,7 @@ export class GameRoomComponent implements OnInit, OnDestroy {
         parseInt(this.roomId),
         this.myTelegramId,
         parseInt(tuningId),
-        parseInt(garageCarId)
+        garageCarId
       );
 
       // Reset the flag after a short delay to allow the next drop

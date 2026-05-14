@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CarDto {
     private Long id;
+    private String instanceId;
     private String model;
     private String year;
     private BigDecimal price;
