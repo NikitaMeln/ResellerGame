@@ -17,4 +17,7 @@ public class CarDto {
     private String year;
     private BigDecimal price;
     private List<TuningDto> tuning;
+    // Hidden negative card data is only set when revealed; otherwise null.
+    private TuningDto hiddenNegativeCard;
+    private boolean negativeCardRevealed;
 }

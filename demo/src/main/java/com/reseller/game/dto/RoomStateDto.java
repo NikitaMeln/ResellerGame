@@ -3,6 +3,7 @@ package com.reseller.game.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.reseller.game.model.entity.types.RoomPhase;
 import com.reseller.game.model.entity.types.TurnStep;
 
 import lombok.AllArgsConstructor;
@@ -21,6 +22,9 @@ public class RoomStateDto {
     private LocalDateTime startTime;
     private Integer currentPlayerIndex;
     private TurnStep turnStep;
+    private RoomPhase phase;
+    private String winnerTelegramId;
+    private CurrentSaleDto currentSale;
     private List<TuningDto> negativeCards;
 
 }

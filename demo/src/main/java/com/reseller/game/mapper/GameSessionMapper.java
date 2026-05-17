@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.reseller.game.dto.CarDto;
+import com.reseller.game.dto.CurrentSaleDto;
 import com.reseller.game.dto.PlayerDto;
 import com.reseller.game.dto.RoomStateDto;
 import com.reseller.game.model.entity.GameRoom;
@@ -39,15 +40,15 @@ public class GameSessionMapper {
     public RoomStateDto toDto(GameSession session, GameRoom room) {
         RoomStateDto dto = gameRoomMapper.toDto(room);
 
-        dto.setCars(session.getAvailableCars().stream()
+        dto.setCars(session.getVisibleCars().stream()
                 .map(carMapper::toDto)
                 .collect(Collectors.toList()));
 
-        dto.setClients(session.getAvailableClients().stream()
+        dto.setClients(session.getVisibleClients().stream()
                 .map(clientMapper::toDto)
                 .collect(Collectors.toList()));
 
-        dto.setTunings(session.getAvailableTunings().stream()
+        dto.setTunings(session.getVisibleTunings().stream()
                 .map(tuningMapper::toDto)
                 .collect(Collectors.toList()));
 
@@ -57,10 +58,27 @@ public class GameSessionMapper {
 
         dto.setCurrentPlayerIndex(session.getCurrentPlayerIndex());
         dto.setTurnStep(session.getTurnStep());
+        dto.setPhase(session.getPhase());
+        dto.setWinnerTelegramId(session.getWinnerTelegramId());
+        dto.setCurrentSale(mapCurrentSale(session));
 
         dto.setPlayerQueue(mapPlayersWithGameState(session.getPlayers(), dto.getPlayerQueue()));
 
         return dto;
+    }
+
+    private CurrentSaleDto mapCurrentSale(GameSession session) {
+        if (session.getCurrentSale() == null) return null;
+        var s = session.getCurrentSale();
+        return new CurrentSaleDto(
+                s.getSellerTelegramId(),
+                s.getClientId(),
+                s.getCarInstanceId(),
+                s.getDiceValue(),
+                s.getThreshold(),
+                s.getSuccess(),
+                s.getProfit()
+        );
     }
 
     /**
@@ -85,15 +103,13 @@ public class GameSessionMapper {
                     playerDto.setUsername(gameState.getUsername());
                     playerDto.setBalance(gameState.getBalance());
                     playerDto.setGarageSize(gameState.getGarageCapacity());
+                    playerDto.setSoldCars(gameState.getSoldCars());
+                    playerDto.setTotalProfit(gameState.getTotalProfit());
 
                     List<CarDto> carDtos = gameState.getGarage().stream()
                             .map(this::mapCarInstance)
                             .collect(Collectors.toList());
                     playerDto.setCars(carDtos);
-
-                    if (gameState.getCurrentNegativeCard() != null) {
-                        playerDto.setCurrentNegativeCard(tuningMapper.toDto(gameState.getCurrentNegativeCard()));
-                    }
 
                     return playerDto;
                 })
@@ -114,6 +130,11 @@ public class GameSessionMapper {
         dto.setTuning(carInstance.getAppliedTunings().stream()
                 .map(tuningMapper::toDto)
                 .collect(Collectors.toList()));
+
+        dto.setNegativeCardRevealed(carInstance.isNegativeCardRevealed());
+        if (carInstance.isNegativeCardRevealed() && carInstance.getHiddenNegativeCard() != null) {
+            dto.setHiddenNegativeCard(tuningMapper.toDto(carInstance.getHiddenNegativeCard()));
+        }
 
         return dto;
     }

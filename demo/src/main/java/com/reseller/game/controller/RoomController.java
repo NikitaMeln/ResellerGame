@@ -10,7 +10,11 @@ import org.springframework.stereotype.Controller;
 import com.reseller.game.dto.RoomStateDto;
 import com.reseller.game.dto.req.BuyCarRequest;
 import com.reseller.game.dto.req.BuyTuningRequest;
+import com.reseller.game.dto.req.ChooseClientAndCarRequest;
 import com.reseller.game.dto.req.JoinRoomRequest;
+import com.reseller.game.dto.req.NextTurnRequest;
+import com.reseller.game.dto.req.RevealSecretCardRequest;
+import com.reseller.game.dto.req.RollDiceRequest;
 import com.reseller.game.dto.req.SkipActionRequest;
 import com.reseller.game.exception.GameException;
 import com.reseller.game.mapper.GameSessionMapper;
@@ -104,6 +108,43 @@ public class RoomController {
 
         runGameAction(req.getRoomId(), req.getTelegramId(), () ->
                 gameSessionService.processSkipAction(req.getRoomId(), req.getTelegramId()));
+    }
+
+    @MessageMapping("/game.chooseClientAndCar")
+    public void chooseClientAndCar(ChooseClientAndCarRequest req) {
+        log.info("chooseClientAndCar - RoomId: {}, TelegramId: {}, ClientId: {}, CarInstanceId: {}",
+                req.getRoomId(), req.getTelegramId(), req.getClientId(), req.getCarInstanceId());
+
+        runGameAction(req.getRoomId(), req.getTelegramId(), () ->
+                gameSessionService.processChooseClientAndCarAction(
+                        req.getRoomId(), req.getTelegramId(), req.getClientId(), req.getCarInstanceId()));
+    }
+
+    @MessageMapping("/game.revealSecretCard")
+    public void revealSecretCard(RevealSecretCardRequest req) {
+        log.info("revealSecretCard - RoomId: {}, TelegramId: {}", req.getRoomId(), req.getTelegramId());
+
+        runGameAction(req.getRoomId(), req.getTelegramId(), () ->
+                gameSessionService.processRevealSecretCardAction(req.getRoomId(), req.getTelegramId()));
+    }
+
+    @MessageMapping("/game.rollDice")
+    public void rollDice(RollDiceRequest req) {
+        log.info("rollDice - RoomId: {}, TelegramId: {}, DiceValue: {}",
+                req.getRoomId(), req.getTelegramId(), req.getDiceValue());
+
+        runGameAction(req.getRoomId(), req.getTelegramId(), () ->
+                gameSessionService.processRollDiceAction(
+                        req.getRoomId(), req.getTelegramId(),
+                        req.getDiceValue() == null ? -1 : req.getDiceValue()));
+    }
+
+    @MessageMapping("/game.nextTurn")
+    public void nextTurn(NextTurnRequest req) {
+        log.info("nextTurn - RoomId: {}, TelegramId: {}", req.getRoomId(), req.getTelegramId());
+
+        runGameAction(req.getRoomId(), req.getTelegramId(), () ->
+                gameSessionService.processNextTurnAction(req.getRoomId(), req.getTelegramId()));
     }
 
     /**

@@ -51,4 +51,29 @@ public interface GameSessionService {
      * Skips current action and moves to next player's turn.
      */
     void processSkipAction(Long roomId, String telegramId);
+
+    /**
+     * Player picks a client and a car from their garage to sell to.
+     * Validates year range, stockOrNot preference, and budget. Advances to SHOW_SECRET_CARD.
+     * The chosen client and car instance are tracked on the session for the dice roll step.
+     */
+    void processChooseClientAndCarAction(Long roomId, String telegramId, Long clientId, String carInstanceId);
+
+    /**
+     * Reveal the hidden negative card attached to the car selected in the previous step.
+     * Advances to TURN_MULTIPLIER (dice roll).
+     */
+    void processRevealSecretCardAction(Long roomId, String telegramId);
+
+    /**
+     * Apply dice roll, compute profit/failure, mutate balance/sold counters, check win.
+     * Advances to RESULT. dice must be in [1,6].
+     */
+    void processRollDiceAction(Long roomId, String telegramId, int dice);
+
+    /**
+     * Acknowledge RESULT screen and move to the next player according to phase order.
+     * Removes the sold-to client from the pool (regardless of success).
+     */
+    void processNextTurnAction(Long roomId, String telegramId);
 }

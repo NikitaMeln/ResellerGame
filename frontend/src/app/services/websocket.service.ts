@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Client, Message, StompConfig, StompSubscription } from '@stomp/stompjs';
+import { Client, Message, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { filter, first } from 'rxjs/operators';
 
@@ -149,5 +149,21 @@ export class WebSocketService {
 
   skipAction(roomId: number, telegramId: string): void {
     this.publish('/app/game.skip', { roomId, telegramId });
+  }
+
+  chooseClientAndCar(roomId: number, telegramId: string, clientId: number, carInstanceId: string): void {
+    this.publish('/app/game.chooseClientAndCar', { roomId, telegramId, clientId, carInstanceId });
+  }
+
+  revealSecretCard(roomId: number, telegramId: string): void {
+    this.publish('/app/game.revealSecretCard', { roomId, telegramId });
+  }
+
+  rollDice(roomId: number, telegramId: string, diceValue: number): void {
+    this.publish('/app/game.rollDice', { roomId, telegramId, diceValue });
+  }
+
+  nextTurn(roomId: number, telegramId: string): void {
+    this.publish('/app/game.nextTurn', { roomId, telegramId });
   }
 }

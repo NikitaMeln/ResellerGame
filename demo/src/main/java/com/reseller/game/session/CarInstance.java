@@ -38,6 +38,11 @@ public class CarInstance {
     @Builder.Default
     private List<Tuning> appliedTunings = new ArrayList<>();
 
+    // Hidden negative card attached on purchase. Stays face-down until SHOW_SECRET_CARD step.
+    private Tuning hiddenNegativeCard;
+    @Builder.Default
+    private boolean negativeCardRevealed = false;
+
     /**
      * Create a new car instance from a template Car
      */

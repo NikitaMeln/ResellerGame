@@ -10,6 +10,11 @@
         <div
           *ngFor="let slot of clientZone; let i = index"
           class="card-slot"
+          [class.client-drop-target]="slot && isDraggingGarageCar"
+          [class.client-hover]="slot && isClientHovered(slot.id)"
+          (dragover)="slot ? onClientDragOver($event, slot.id) : null"
+          (dragleave)="onClientDragLeave($event)"
+          (drop)="slot ? onClientDrop($event, slot.id) : null"
         >
           <app-game-card
             *ngIf="slot"
@@ -101,6 +106,8 @@
         <app-game-card
           *ngIf="slot"
           [card]="slot"
+          (cardDragStart)="onGarageCarDragStartForSelling($event)"
+          (cardDragEnd)="onGarageCarDragEndForSelling($event)"
         ></app-game-card>
 
         <div *ngIf="!slot" class="empty-slot">
@@ -111,17 +118,80 @@
   </div>
 
   <!-- Turn indicator overlay -->
-  <div class="turn-indicator" *ngIf="isStarted()">
+  <div class="turn-indicator" *ngIf="isStarted() && !isFinished()">
     <div *ngIf="isMyTurn()" class="your-turn-banner">
       <span class="turn-text">
         <strong>YOUR TURN!</strong>
         <span *ngIf="isCarSelection()">Select a car to buy</span>
         <span *ngIf="isTuningSelection()">Select tuning for your car or skip</span>
+        <span *ngIf="isChooseClient()">Drag a car from garage onto a client</span>
       </span>
-      <button class="btn-skip" (click)="skipTurn()">Skip</button>
+      <button type="button" class="btn-skip" (click)="skipTurn()"
+              *ngIf="isCarSelection() || isTuningSelection() || isChooseClient()">Skip</button>
     </div>
     <div *ngIf="!isMyTurn()" class="waiting-turn">
       <p>Waiting for <strong>{{ getCurrentPlayerName() }}</strong></p>
+    </div>
+  </div>
+
+  <!-- Selling phase: show hidden negative card -->
+  <div class="modal-overlay" *ngIf="isMyTurn() && isShowSecretCard() && getMySale()">
+    <div class="modal-panel secret-card-panel">
+      <h2>Secret card on this car</h2>
+      <p class="hint">A hidden negative card was placed on this car when you bought it. Reveal it before rolling.</p>
+      <div class="card-back">?</div>
+      <button type="button" class="btn-primary" (click)="revealSecretCard()">Reveal</button>
+    </div>
+  </div>
+
+  <!-- Selling phase: dice roll -->
+  <div class="modal-overlay" *ngIf="isMyTurn() && isTurnMultiplier() && getMySale()">
+    <div class="modal-panel dice-panel">
+      <h2>Roll the dice</h2>
+      <div class="revealed-negative" *ngIf="getRevealedNegativeCard() as neg">
+        <strong>Negative:</strong> {{ neg.name }}
+        <span *ngIf="neg.description"> — {{ neg.description }}</span>
+      </div>
+      <div class="dice" [class.spinning]="isRollingDice">
+        {{ diceFaceShown ?? '?' }}
+      </div>
+      <button type="button" class="btn-primary" (click)="rollDice()" [disabled]="isRollingDice">
+        {{ isRollingDice ? 'Rolling…' : 'Roll' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Selling phase: result -->
+  <div class="modal-overlay" *ngIf="isMyTurn() && isResult() && getMySale() as sale">
+    <div class="modal-panel result-panel" [class.success]="sale.success" [class.failure]="!sale.success">
+      <h2>{{ sale.success ? 'Sold!' : 'No deal' }}</h2>
+      <div class="result-row">
+        <span>Dice rolled:</span><strong>{{ sale.diceValue }}</strong>
+      </div>
+      <div class="result-row">
+        <span>Needed (≥):</span><strong>{{ sale.threshold }}</strong>
+      </div>
+      <div class="result-row" *ngIf="sale.success">
+        <span>Profit:</span><strong>+{{ sale.profit }}₴</strong>
+      </div>
+      <div class="result-row" *ngIf="!sale.success">
+        <span>Outcome:</span><strong>Car stays in garage for next round.</strong>
+      </div>
+      <button type="button" class="btn-primary" (click)="nextTurn()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Transient error toast (game rule violations) -->
+  <div class="error-toast" *ngIf="errorMessage" (click)="dismissError()">
+    <span>{{ errorMessage }}</span>
+    <span class="toast-close">×</span>
+  </div>
+
+  <!-- Game finished -->
+  <div class="modal-overlay" *ngIf="isFinished()">
+    <div class="modal-panel finished-panel" [class.win]="amIWinner()">
+      <h2>{{ amIWinner() ? 'You won!' : 'Game over' }}</h2>
+      <p>Winner: <strong>{{ getWinnerName() }}</strong></p>
     </div>
   </div>
 </div>

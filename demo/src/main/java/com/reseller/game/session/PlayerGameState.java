@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.reseller.game.model.entity.Tuning;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +30,13 @@ public class PlayerGameState {
     @Builder.Default
     private List<CarInstance> garage = new ArrayList<>();
 
-    // Current negative card (debuff) for this turn
-    private Tuning currentNegativeCard;
+    // Cars successfully sold during this game session (win condition: >= 5)
+    @Builder.Default
+    private int soldCars = 0;
+
+    // Total profit accumulated from successful sales (win condition: >= 10000)
+    @Builder.Default
+    private int totalProfit = 0;
 
     // Garage capacity
     @Builder.Default

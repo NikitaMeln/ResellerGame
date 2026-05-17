@@ -24,6 +24,17 @@ interface RoomState {
   startTime: string;
   currentPlayerIndex: number;
   turnStep: string;
+  phase?: 'BUYING' | 'SELLING';
+  winnerTelegramId?: string | null;
+  currentSale?: {
+    sellerTelegramId: string;
+    clientId: number;
+    carInstanceId: string;
+    diceValue?: number | null;
+    threshold?: number | null;
+    success?: boolean | null;
+    profit?: number | null;
+  } | null;
   negativeCards: any[];
 }
 
@@ -64,6 +75,8 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   private zoneRoundSnapshot: string = '';
   private lastProcessedPlayerIndex: number = -1;
   private lastProcessedTurnStep: string = '';
+  // True for one updateZones() tick right after the server rotated the visible window.
+  private poolsJustRefreshed: boolean = false;
 
   private subscriptions: Subscription[] = [];
   private platformId = inject(PLATFORM_ID);
@@ -128,11 +141,17 @@ export class GameRoomComponent implements OnInit, OnDestroy {
       this.websocketService.subscribeToRoomState(roomId).subscribe({
         next: (state: RoomState) => {
           console.log('Room state update:', state);
+          const prevState = this.roomState;
           this.roomState = state;
 
-          // Initialize pools only once (when they're empty)
+          // Initialize pools the first time, then refresh them on every new round
+          // (server rotates visible cards into new ones between rounds).
           if (this.clientAvailableCards.length === 0) {
             this.initializeAvailablePools();
+            this.poolsJustRefreshed = true;
+          } else if (this.didRoundJustStart(prevState, state)) {
+            this.initializeAvailablePools();
+            this.poolsJustRefreshed = true;
           }
 
           this.updateZones();
@@ -151,10 +170,62 @@ export class GameRoomComponent implements OnInit, OnDestroy {
         error: (error: any) => console.error('Turn info error:', error)
       })
     );
+
+    // Player-targeted errors (game rule violations from /app/game.* actions).
+    if (this.myTelegramId) {
+      this.subscriptions.push(
+        this.websocketService.subscribe(`/topic/player.${this.myTelegramId}.error`).subscribe({
+          next: (err: any) => this.showError(err?.message || 'Action rejected'),
+          error: (e) => console.error('Error topic subscription failed:', e)
+        })
+      );
+    }
+  }
+
+  errorMessage: string | null = null;
+  private errorTimeout: any = null;
+
+  private showError(msg: string): void {
+    this.errorMessage = msg;
+    if (this.errorTimeout) clearTimeout(this.errorTimeout);
+    this.errorTimeout = setTimeout(() => {
+      this.errorMessage = null;
+      this.cdr.detectChanges();
+    }, 4000);
+    this.cdr.detectChanges();
+  }
+
+  dismissError(): void {
+    this.errorMessage = null;
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
+      this.errorTimeout = null;
+    }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  /**
+   * Detect that the server has rotated the visible window. Works without relying on phase
+   * transitions: if roomState.cars contains a car id we have never seen in our pool snapshot,
+   * the window has been refreshed and we should rebuild the local pools from the new state.
+   */
+  private didRoundJustStart(_prev: RoomState | null, next: RoomState): boolean {
+    const knownCarIds = new Set(this.marketAvailableCards.map(c => c?.id));
+    const hasNewCar = (next.cars || []).some((c: any) => c?.id != null && !knownCarIds.has(c.id.toString()));
+    if (hasNewCar) return true;
+
+    const knownClientIds = new Set(this.clientAvailableCards.map(c => c?.id));
+    const hasNewClient = (next.clients || []).some((c: any) => c?.id != null && !knownClientIds.has(c.id.toString()));
+    if (hasNewClient) return true;
+
+    const knownTuningIds = new Set(this.tuningAvailableCards.map(t => t?.id));
+    const hasNewTuning = (next.tunings || [])
+      .filter((t: any) => t.type === 'POSITIVE')
+      .some((t: any) => t?.id != null && !knownTuningIds.has(t.id.toString()));
+    return hasNewTuning;
   }
 
   private initializePlayerState(): void {
@@ -268,7 +339,8 @@ export class GameRoomComponent implements OnInit, OnDestroy {
       currentTurnStep === 'CAR_SELECTION' &&
       currentPlayerIndex === 0 &&
       this.lastProcessedTurnStep === 'RESULT';
-    const shouldRefreshZones = isFirstTime || isNewRound;
+    const shouldRefreshZones = isFirstTime || isNewRound || this.poolsJustRefreshed;
+    this.poolsJustRefreshed = false;
 
     console.log(`Is first time: ${isFirstTime}, Is new round: ${isNewRound}, Should refresh: ${shouldRefreshZones}`);
 
@@ -399,6 +471,7 @@ export class GameRoomComponent implements OnInit, OnDestroy {
       if (currentPlayer.cars && currentPlayer.cars.length > 0) {
         console.log('Updating garage with cars:', currentPlayer.cars);
 
+        const canDragGarageCar = this.isMyTurn() && this.isChooseClient();
         this.garageZone = currentPlayer.cars.map((car: any, index: number) => {
           const carTunings = car.tuning || [];
           console.log(`Car ${car.id} has ${carTunings.length} tunings:`, carTunings);
@@ -416,7 +489,7 @@ export class GameRoomComponent implements OnInit, OnDestroy {
               tuning: carTunings
             },
             isRevealed: true,
-            isDraggable: false
+            isDraggable: canDragGarageCar
           };
         });
 
@@ -459,22 +532,86 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   }
 
   isMyTurn(): boolean {
-    if (this.turnInfo?.currentPlayer) {
-      return this.turnInfo.currentPlayer === this.myTelegramId;
+    // Prefer the authoritative roomState (carries currentPlayerIndex + playerQueue together).
+    // turnInfo may arrive on a different WebSocket frame and lag behind, so we don't trust it as primary.
+    const queue = this.roomState?.playerQueue;
+    const idx = this.roomState?.currentPlayerIndex;
+    if (queue && idx !== undefined && idx !== null && queue[idx]) {
+      return queue[idx].telegramId === this.myTelegramId;
     }
-    const idx = this.roomState?.currentPlayerIndex ?? -1;
-    const queue = this.roomState?.playerQueue || [];
-    return queue[idx]?.telegramId === this.myTelegramId;
+    return this.turnInfo?.currentPlayer === this.myTelegramId;
+  }
+
+  /** roomState is the authoritative source; turnInfo only fills in if state hasn't arrived yet. */
+  private currentTurnStep(): string | undefined {
+    return this.roomState?.turnStep ?? this.turnInfo?.turnStep;
   }
 
   isCarSelection(): boolean {
-    const step = this.turnInfo?.turnStep ?? this.roomState?.turnStep;
-    return step === 'CAR_SELECTION';
+    return this.currentTurnStep() === 'CAR_SELECTION';
   }
 
   isTuningSelection(): boolean {
-    const step = this.turnInfo?.turnStep ?? this.roomState?.turnStep;
-    return step === 'TUNING_SELECTION';
+    return this.currentTurnStep() === 'TUNING_SELECTION';
+  }
+
+  isChooseClient(): boolean {
+    return this.currentTurnStep() === 'CHOICE_CLIENT_TO_SELL';
+  }
+
+  isShowSecretCard(): boolean {
+    return this.currentTurnStep() === 'SHOW_SECRET_CARD';
+  }
+
+  isTurnMultiplier(): boolean {
+    return this.currentTurnStep() === 'TURN_MULTIPLIER';
+  }
+
+  isResult(): boolean {
+    return this.currentTurnStep() === 'RESULT';
+  }
+
+  isSellingPhase(): boolean {
+    return this.roomState?.phase === 'SELLING';
+  }
+
+  isFinished(): boolean {
+    return !!this.roomState?.winnerTelegramId;
+  }
+
+  getWinnerName(): string {
+    const id = this.roomState?.winnerTelegramId;
+    if (!id) return '';
+    const winner = this.roomState?.playerQueue?.find(p => p.telegramId === id);
+    return winner?.username || id;
+  }
+
+  amIWinner(): boolean {
+    return this.roomState?.winnerTelegramId === this.myTelegramId;
+  }
+
+  /** Active sale tracked on the server for the current player. */
+  getMySale() {
+    const sale = this.roomState?.currentSale;
+    if (!sale) return null;
+    if (sale.sellerTelegramId !== this.myTelegramId) return null;
+    return sale;
+  }
+
+  /** Car currently being sold (from sale.carInstanceId), looked up in my garage. */
+  getSaleCar(): CarCard | null {
+    const sale = this.getMySale();
+    if (!sale) return null;
+    return this.garageZone.find(c => c?.id === sale.carInstanceId) || null;
+  }
+
+  /** Revealed negative card for the car being sold, or null if not revealed yet. */
+  getRevealedNegativeCard(): any | null {
+    const sale = this.getMySale();
+    if (!sale) return null;
+    const me = this.roomState?.playerQueue?.find((p: any) => p.telegramId === this.myTelegramId);
+    const car = me?.cars?.find((c: any) => c.instanceId === sale.carInstanceId);
+    return car?.negativeCardRevealed ? car.hiddenNegativeCard : null;
   }
 
   canStartGame(): boolean {
@@ -509,6 +646,86 @@ export class GameRoomComponent implements OnInit, OnDestroy {
         this.myTelegramId
       );
     }
+  }
+
+  revealSecretCard(): void {
+    if (!this.isMyTurn() || !this.isShowSecretCard()) return;
+    this.websocketService.revealSecretCard(parseInt(this.roomId), this.myTelegramId);
+  }
+
+  rollDice(): void {
+    if (!this.isMyTurn() || !this.isTurnMultiplier()) return;
+    if (this.isRollingDice) return;
+    this.isRollingDice = true;
+    const value = 1 + Math.floor(Math.random() * 6);
+    this.diceFaceShown = value;
+    // Short animation tick (CSS handles the spin); server resolves the outcome.
+    setTimeout(() => {
+      this.websocketService.rollDice(parseInt(this.roomId), this.myTelegramId, value);
+      this.isRollingDice = false;
+    }, 900);
+  }
+
+  nextTurn(): void {
+    if (!this.isMyTurn() || !this.isResult()) return;
+    this.websocketService.nextTurn(parseInt(this.roomId), this.myTelegramId);
+  }
+
+  isRollingDice: boolean = false;
+  diceFaceShown: number | null = null;
+
+  /** Selling-phase drag: drag a garage car onto a client to sell. */
+  private draggedGarageCarId: string | null = null;
+  isDraggingGarageCar: boolean = false;
+  private hoveredClientId: string | null = null;
+
+  onGarageCarDragStartForSelling(card: GameCard): void {
+    if (!this.isMyTurn() || !this.isChooseClient() || card.type !== 'car') return;
+    this.draggedGarageCarId = card.id;
+    this.isDraggingGarageCar = true;
+  }
+
+  onGarageCarDragEndForSelling(_card: GameCard): void {
+    this.draggedGarageCarId = null;
+    this.isDraggingGarageCar = false;
+    this.hoveredClientId = null;
+  }
+
+  onClientDragOver(event: DragEvent, clientId: string): void {
+    if (this.isMyTurn() && this.isChooseClient() && this.draggedGarageCarId) {
+      event.preventDefault();
+      event.dataTransfer!.dropEffect = 'move';
+      this.hoveredClientId = clientId;
+    }
+  }
+
+  onClientDragLeave(event: DragEvent): void {
+    const target = event.relatedTarget as HTMLElement;
+    if (!target || !target.closest('.clients-zone')) {
+      this.hoveredClientId = null;
+    }
+  }
+
+  onClientDrop(event: DragEvent, clientId: string): void {
+    event.preventDefault();
+    this.isDraggingGarageCar = false;
+    this.hoveredClientId = null;
+    if (!this.isMyTurn() || !this.isChooseClient()) return;
+
+    const carInstanceId = event.dataTransfer?.getData('cardId') || this.draggedGarageCarId;
+    if (!carInstanceId || !clientId) return;
+
+    this.websocketService.chooseClientAndCar(
+      parseInt(this.roomId),
+      this.myTelegramId,
+      parseInt(clientId),
+      carInstanceId
+    );
+    this.draggedGarageCarId = null;
+  }
+
+  isClientHovered(clientId: string): boolean {
+    return this.hoveredClientId === clientId && this.isDraggingGarageCar;
   }
 
   getCurrentPlayerName(): string {
