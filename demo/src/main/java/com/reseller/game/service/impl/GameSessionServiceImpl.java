@@ -215,8 +215,10 @@ public class GameSessionServiceImpl implements GameSessionService {
         int tuningPrice = tuning.getPrice().intValue();
         validatePlayerBalance(player, tuningPrice);
 
-        // Apply tuning to car instance
-        carInstance.addTuning(tuning);
+        // Apply tuning to car instance - never charge for a tuning the car already carries
+        if (!carInstance.addTuning(tuning)) {
+            throw new IllegalActionException("Car " + carInstanceId + " already has tuning " + tuningId);
+        }
 
         // Deduct balance
         player.deductBalance(tuningPrice);
@@ -229,11 +231,13 @@ public class GameSessionServiceImpl implements GameSessionService {
 
     @Override
     public void processBuyCarAction(Long roomId, String telegramId, Long carId) {
+        GameSession session = getSession(roomId);
+        requireTurn(session, telegramId, TurnStep.CAR_SELECTION);
+
         // Buy car (atomic operation)
         CarInstance carInstance = buyCar(roomId, telegramId, carId);
 
         // Attach a hidden negative card to this specific car (revealed later, in SHOW_SECRET_CARD).
-        GameSession session = getSession(roomId);
         attachHiddenNegativeCard(session, carInstance);
 
         // Advance turn step to tuning selection
@@ -261,11 +265,13 @@ public class GameSessionServiceImpl implements GameSessionService {
 
     @Override
     public void processBuyTuningAction(Long roomId, String telegramId, Long tuningId, String carInstanceId) {
+        GameSession session = getSession(roomId);
+        requireTurn(session, telegramId, TurnStep.TUNING_SELECTION);
+
         // Buy and apply tuning (atomic operation)
         buyTuning(roomId, telegramId, tuningId, carInstanceId);
 
         // Move to next player
-        GameSession session = getSession(roomId);
         session.moveToNextPlayer();
 
         log.info("Player {} completed tuning purchase in room {}, advanced to next player", telegramId, roomId);
@@ -278,6 +284,13 @@ public class GameSessionServiceImpl implements GameSessionService {
         // Verify it's this player's turn
         if (!session.isCurrentPlayer(telegramId)) {
             throw new IllegalActionException("Not this player's turn");
+        }
+
+        // A player may bail out mid-sale; drop the abandoned sale so it stops being broadcast
+        // in the room state and cannot be mistaken for the next player's sale.
+        CurrentSale abandoned = session.getCurrentSale();
+        if (abandoned != null && Objects.equals(abandoned.getSellerTelegramId(), telegramId)) {
+            session.setCurrentSale(null);
         }
 
         // Skip - move to next player regardless of turn step

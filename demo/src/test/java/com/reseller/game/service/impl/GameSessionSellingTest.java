@@ -284,6 +284,17 @@ class GameSessionSellingTest extends GameSessionTestSupport {
     }
 
     @Test
+    void skippingInTheMiddleOfASaleDropsTheHalfFinishedSale() {
+        // the session's currentSale is broadcast to every client, so an abandoned sale must not linger
+        sessionWithWinnableSale();
+        playUntilDiceRoll(P1);
+
+        service.processSkipAction(ROOM, P1);
+
+        assertThat(service.getSession(ROOM).getCurrentSale()).isNull();
+    }
+
+    @Test
     void aClientShoppingForADifferentDecadeIsRejected() {
         List<Client> eighties = List.of(client(1L, BUDGET, 3, true, "2010-x"), client(2L, BUDGET, 3, true, "2010-x"));
         startSession(identicalCars(2, CAR_PRICE), eighties, neutralNegativeCards(3), P1);

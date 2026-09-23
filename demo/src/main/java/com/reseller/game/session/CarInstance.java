@@ -69,11 +69,14 @@ public class CarInstance {
     }
 
     /**
-     * Add a tuning to this car instance
+     * Add a tuning to this car instance. Returns false when the car already carries it - Tuning
+     * equality ignores the id, so two different rows with identical content count as the same tuning.
      */
-    public void addTuning(Tuning tuning) {
+    public boolean addTuning(Tuning tuning) {
         if (tuning != null && !appliedTunings.contains(tuning)) {
             appliedTunings.add(tuning);
+            return true;
         }
+        return false;
     }
 }

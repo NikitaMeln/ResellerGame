@@ -123,6 +123,20 @@ abstract class GameSessionTestSupport {
                 .build();
     }
 
+    /**
+     * Two twins share every field Tuning.equals looks at (name, price, type, properties) but have
+     * different ids - the shape that makes CarInstance.addTuning treat the second one as a duplicate.
+     */
+    static Tuning twinTuning(long id, int price) {
+        return Tuning.builder()
+                .id(id)
+                .name("twin")
+                .price(BigDecimal.valueOf(price))
+                .type(TuningType.POSITIVE)
+                .properties(new HashMap<>())
+                .build();
+    }
+
     static Tuning positiveTuningWithModifier(long id, int price, int addToRandomModifier) {
         HashMap<String, Object> properties = new HashMap<>();
         properties.put("addToRandomModifier", addToRandomModifier);

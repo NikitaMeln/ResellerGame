@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.reseller.game.exception.CarNotFoundException;
 import com.reseller.game.exception.GarageFullException;
+import com.reseller.game.exception.IllegalActionException;
 import com.reseller.game.exception.InsufficientBalanceException;
 import com.reseller.game.exception.PlayerNotFoundException;
 import com.reseller.game.model.entity.types.TurnStep;
@@ -206,6 +207,78 @@ class GameSessionBuyingTest extends GameSessionTestSupport {
         service.processBuyCarAction(ROOM, P1, firstVisibleCarId());
 
         assertThat(service.getSession(ROOM).getTurnStep()).isEqualTo(TurnStep.TUNING_SELECTION);
+    }
+
+    @Test
+    void buyingACarOutOfTurnIsRejected() {
+        startSession(identicalCars(4, 100), identicalClients(4, 2000, 3, true), neutralNegativeCards(5), P1, P2, P3);
+        long carId = firstVisibleCarId();
+
+        assertThatThrownBy(() -> service.processBuyCarAction(ROOM, P2, carId))
+                .isInstanceOf(IllegalActionException.class);
+    }
+
+    @Test
+    void buyingASecondCarInTheSameRoundIsRejected() {
+        startSession(identicalCars(2, 100), identicalClients(2, 2000, 3, true), neutralNegativeCards(3), P1);
+        service.processBuyCarAction(ROOM, P1, firstVisibleCarId());
+        long secondCarId = firstVisibleCarId();
+
+        assertThatThrownBy(() -> service.processBuyCarAction(ROOM, P1, secondCarId))
+                .isInstanceOf(IllegalActionException.class);
+    }
+
+    @Test
+    void buyingACarDuringTheSellingPhaseIsRejected() {
+        startSession(identicalCars(2, 100), identicalClients(2, 2000, 3, true), neutralNegativeCards(3), P1);
+        service.processBuyCarAction(ROOM, P1, firstVisibleCarId());
+        service.processSkipAction(ROOM, P1);
+        long carId = firstVisibleCarId();
+
+        assertThatThrownBy(() -> service.processBuyCarAction(ROOM, P1, carId))
+                .isInstanceOf(IllegalActionException.class);
+    }
+
+    @Test
+    void buyingASecondTuningInTheSameRoundIsRejected() {
+        startSession(identicalCars(2, 100), identicalClients(2, 2000, 3, true),
+                tuningPool(3, positiveTuning(1L, 200), positiveTuning(2L, 200)), P1);
+        service.processBuyCarAction(ROOM, P1, firstVisibleCarId());
+        service.processBuyTuningAction(ROOM, P1, firstVisibleTuningId(), garageCarId(P1));
+        long secondTuningId = firstVisibleTuningId();
+        String carId = garageCarId(P1);
+
+        assertThatThrownBy(() -> service.processBuyTuningAction(ROOM, P1, secondTuningId, carId))
+                .isInstanceOf(IllegalActionException.class);
+    }
+
+    @Test
+    void applyingATuningTheCarAlreadyCarriesIsRejected() {
+        startSession(identicalCars(2, 100), identicalClients(2, 2000, 3, true),
+                tuningPool(3, twinTuning(1L, 200), twinTuning(2L, 200)), P1);
+        service.buyCar(ROOM, P1, firstVisibleCarId());
+        String carId = garageCarId(P1);
+        List<Long> twins = service.getSession(ROOM).getVisibleTunings().stream().map(t -> t.getId()).toList();
+        service.buyTuning(ROOM, P1, twins.get(0), carId);
+
+        assertThatThrownBy(() -> service.buyTuning(ROOM, P1, twins.get(1), carId))
+                .isInstanceOf(IllegalActionException.class);
+    }
+
+    @Test
+    void aTuningThatCannotBeAppliedIsNotCharged() {
+        startSession(identicalCars(2, 100), identicalClients(2, 2000, 3, true),
+                tuningPool(3, twinTuning(1L, 200), twinTuning(2L, 200)), P1);
+        service.buyCar(ROOM, P1, firstVisibleCarId());
+        String carId = garageCarId(P1);
+        List<Long> twins = service.getSession(ROOM).getVisibleTunings().stream().map(t -> t.getId()).toList();
+        service.buyTuning(ROOM, P1, twins.get(0), carId);
+        int balanceAfterFirstTuning = balanceOf(P1);
+
+        assertThatThrownBy(() -> service.buyTuning(ROOM, P1, twins.get(1), carId))
+                .isInstanceOf(IllegalActionException.class);
+
+        assertThat(balanceOf(P1)).isEqualTo(balanceAfterFirstTuning);
     }
 
     @Test
