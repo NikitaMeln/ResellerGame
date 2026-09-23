@@ -405,7 +405,7 @@ public class GameSessionServiceImpl implements GameSessionService {
 
         int profit = 0;
         if (success) {
-            profit = computeProfit(client, car);
+            profit = computeProfit(client);
             player.addBalance(profit);
             player.setSoldCars(player.getSoldCars() + 1);
             player.setTotalProfit(player.getTotalProfit() + profit);
@@ -445,17 +445,16 @@ public class GameSessionServiceImpl implements GameSessionService {
     }
 
     /**
-     * Profit = client.budget - car.basePrice - sum(tunings.price). Negative results are clamped to 0,
-     * which represents a bad bargain that the player simply doesn't get paid for.
+     * Profit = client.budget. Car and tuning costs were already deducted from the player's
+     * balance at purchase time, so the full amount the client pays is the player's gain from
+     * this sale - subtracting carTotal again here would double-charge the player for the car.
      */
-    private int computeProfit(Client client, CarInstance car) {
-        BigDecimal carTotal = car.getTotalPrice() != null ? car.getTotalPrice() : car.getBasePrice();
+    private int computeProfit(Client client) {
         BigDecimal budget = client.getBudget() != null ? client.getBudget() : BigDecimal.ZERO;
-        BigDecimal profit = budget.subtract(carTotal);
-        if (profit.signum() < 0) {
+        if (budget.signum() < 0) {
             return 0;
         }
-        return profit.intValue();
+        return budget.intValue();
     }
 
     private int readIntProperty(Tuning t, String key) {
