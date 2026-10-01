@@ -1,12 +1,13 @@
 package com.reseller.game.mapper;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
 import com.reseller.game.dto.CarDto;
-import com.reseller.game.dto.CurrentSaleDto;
 import com.reseller.game.dto.PlayerDto;
 import com.reseller.game.dto.RoomStateDto;
 import com.reseller.game.model.entity.GameRoom;
@@ -25,13 +26,16 @@ public class GameSessionMapper {
     private final ClientMapper clientMapper;
     private final TuningMapper tuningMapper;
     private final GameRoomMapper gameRoomMapper;
+    private final SessionCardMapper sessionCardMapper;
 
     public GameSessionMapper(CarMapper carMapper, ClientMapper clientMapper,
-                            TuningMapper tuningMapper, GameRoomMapper gameRoomMapper) {
+                            TuningMapper tuningMapper, GameRoomMapper gameRoomMapper,
+                            SessionCardMapper sessionCardMapper) {
         this.carMapper = carMapper;
         this.clientMapper = clientMapper;
         this.tuningMapper = tuningMapper;
         this.gameRoomMapper = gameRoomMapper;
+        this.sessionCardMapper = sessionCardMapper;
     }
 
     /**
@@ -52,33 +56,15 @@ public class GameSessionMapper {
                 .map(tuningMapper::toDto)
                 .collect(Collectors.toList()));
 
-        dto.setNegativeCards(session.getAvailableNegativeCards().stream()
-                .map(tuningMapper::toDto)
-                .collect(Collectors.toList()));
-
         dto.setCurrentPlayerIndex(session.getCurrentPlayerIndex());
         dto.setTurnStep(session.getTurnStep());
         dto.setPhase(session.getPhase());
         dto.setWinnerTelegramId(session.getWinnerTelegramId());
-        dto.setCurrentSale(mapCurrentSale(session));
+        dto.setCurrentSale(sessionCardMapper.toDto(session.getCurrentSale()));
 
         dto.setPlayerQueue(mapPlayersWithGameState(session.getPlayers(), dto.getPlayerQueue()));
 
         return dto;
-    }
-
-    private CurrentSaleDto mapCurrentSale(GameSession session) {
-        if (session.getCurrentSale() == null) return null;
-        var s = session.getCurrentSale();
-        return new CurrentSaleDto(
-                s.getSellerTelegramId(),
-                s.getClientId(),
-                s.getCarInstanceId(),
-                s.getDiceValue(),
-                s.getThreshold(),
-                s.getSuccess(),
-                s.getProfit()
-        );
     }
 
     /**
@@ -89,53 +75,43 @@ public class GameSessionMapper {
     }
 
     /**
-     * Merge PlayerGameState (in-memory) with PlayerDto (from DB)
+     * Merge PlayerGameState (in-memory) with PlayerDto (from DB).
+     * Session wins for every in-game number (balance, garage, soldCars, totalProfit) because those
+     * count this match only; the DB DTO is kept just for the username, which the session copies.
      */
     private List<PlayerDto> mapPlayersWithGameState(List<PlayerGameState> gameStates, List<PlayerDto> playerDtos) {
+        Map<String, PlayerDto> byTelegramId = playerDtos == null ? Map.of()
+                : playerDtos.stream()
+                        .collect(Collectors.toMap(PlayerDto::getTelegramId, Function.identity()));
+
         return gameStates.stream()
                 .map(gameState -> {
-                    PlayerDto playerDto = playerDtos.stream()
-                            .filter(p -> p.getTelegramId().equals(gameState.getTelegramId()))
-                            .findFirst()
-                            .orElse(new PlayerDto());
+                    PlayerDto playerDto = byTelegramId.getOrDefault(gameState.getTelegramId(), new PlayerDto());
 
                     playerDto.setTelegramId(gameState.getTelegramId());
-                    playerDto.setUsername(gameState.getUsername());
+                    if (playerDto.getUsername() == null) {
+                        playerDto.setUsername(gameState.getUsername());
+                    }
                     playerDto.setBalance(gameState.getBalance());
                     playerDto.setGarageSize(gameState.getGarageCapacity());
                     playerDto.setSoldCars(gameState.getSoldCars());
                     playerDto.setTotalProfit(gameState.getTotalProfit());
 
-                    List<CarDto> carDtos = gameState.getGarage().stream()
+                    playerDto.setCars(gameState.getGarage().stream()
                             .map(this::mapCarInstance)
-                            .collect(Collectors.toList());
-                    playerDto.setCars(carDtos);
+                            .collect(Collectors.toList()));
 
                     return playerDto;
                 })
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Map CarInstance (in-memory) to CarDto
-     */
+    /** Fills the secret card only once revealed - before that the client must not see it. */
     private CarDto mapCarInstance(CarInstance carInstance) {
-        CarDto dto = new CarDto();
-        dto.setId(carInstance.getOriginalCarId());
-        dto.setInstanceId(carInstance.getInstanceId());
-        dto.setModel(carInstance.getModel());
-        dto.setYear(carInstance.getYear());
-        dto.setPrice(carInstance.getBasePrice());
-
-        dto.setTuning(carInstance.getAppliedTunings().stream()
-                .map(tuningMapper::toDto)
-                .collect(Collectors.toList()));
-
-        dto.setNegativeCardRevealed(carInstance.isNegativeCardRevealed());
+        CarDto dto = sessionCardMapper.toDto(carInstance);
         if (carInstance.isNegativeCardRevealed() && carInstance.getHiddenNegativeCard() != null) {
             dto.setHiddenNegativeCard(tuningMapper.toDto(carInstance.getHiddenNegativeCard()));
         }
-
         return dto;
     }
 }

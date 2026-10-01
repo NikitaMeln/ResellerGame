@@ -25,6 +25,4 @@ public class RoomStateDto {
     private RoomPhase phase;
     private String winnerTelegramId;
     private CurrentSaleDto currentSale;
-    private List<TuningDto> negativeCards;
-
 }

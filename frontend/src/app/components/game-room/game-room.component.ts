@@ -35,7 +35,6 @@ interface RoomState {
     success?: boolean | null;
     profit?: number | null;
   } | null;
-  negativeCards: any[];
 }
 
 interface TurnInfo {
