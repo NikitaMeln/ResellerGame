@@ -29,8 +29,5 @@ Thumbs.db
 *.log
 logs/
 
-.claude/
-CLAUDE.md
-demo/SWAGGER_GUIDE.md
-.idea/
-NOTES.md
+# Claude Code: personal settings/permissions, not shared with the team
+.claude/settings.local.json
